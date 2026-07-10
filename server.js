@@ -6,6 +6,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const connectDB = require('./config/db');
 const path = require('path');
 const http = require('http');
@@ -21,7 +22,6 @@ const adminRoutes = require('./routes/admin');
 const superadminRoutes = require('./routes/superadmin');
 const referralRoutes = require('./routes/referrals');
 const ReferralCode = require('./models/ReferralCode');
-const MongoStore = require('connect-mongo');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,12 +42,12 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback_secret_key_2026',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
-        ttl: 14 * 24 * 60 * 60 // 14 days storage tracking
+    store: new MongoStore({
+        url: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
+        ttl: 14 * 24 * 60 * 60 // 14 days session tracking
     }),
     cookie: { 
-        maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days session lifespan
+        maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days cookie lifetime
         httpOnly: true,                  
         secure: process.env.NODE_ENV === 'production', 
         sameSite: 'lax'
