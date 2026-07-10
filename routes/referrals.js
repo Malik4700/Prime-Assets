@@ -12,7 +12,8 @@ const isAdmin = (req, res, next) => {
 };
 
 // [GET] Render the Admin Referral Management Portal Panel
-router.get('/admin/referral-manager', isAdmin, async (req, res) => {
+// Fixed: Path set to '/' because server.js mounts this file using app.use('/admin/referral-manager', ...)
+router.get('/', isAdmin, async (req, res) => {
     try {
         // ALWAYS fallback cleanly to adminPromo first, matching how dashboard objects identify
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
@@ -34,9 +35,11 @@ router.get('/admin/referral-manager', isAdmin, async (req, res) => {
 });
 
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
+// Fixed: Path set to '/generate' which resolves exactly to /admin/referral-manager/generate
 router.post('/generate', isAdmin, async (req, res) => {
-        try {
-        const { targetUsername } = req.body;
+    try {
+        // Gracefully handle both destructured object formats or raw text inputs from payload
+        const targetUsername = req.body.referrerUsername || req.body.targetUsername;
         
         // Match the identical session key structure used in the GET block
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
