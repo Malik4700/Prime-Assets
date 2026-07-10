@@ -12,7 +12,6 @@ const isAdmin = (req, res, next) => {
 };
 
 // [GET] Render the Admin Referral Management Portal Panel
-// server.js handles the prefix /admin/referral-manager, so this points to the root of that path
 router.get('/', isAdmin, async (req, res) => {
     try {
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
@@ -33,7 +32,7 @@ router.get('/', isAdmin, async (req, res) => {
 });
 
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
-// This matches perfectly with fetch('/admin/referral-manager/generate') because of the server.js prefix
+// This perfectly handles the POST /admin/referral-manager/generate path combined with server.js
 router.post('/generate', isAdmin, async (req, res) => {
     try {
         const targetUsername = req.body.targetUsername || req.body.referrerUsername;
