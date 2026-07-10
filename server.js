@@ -21,8 +21,6 @@ const adminRoutes = require('./routes/admin');
 const superadminRoutes = require('./routes/superadmin');
 const referralRoutes = require('./routes/referrals');
 const ReferralCode = require('./models/ReferralCode');
-
-const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 
 const app = express();
