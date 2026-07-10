@@ -31,6 +31,8 @@ const ReferralCode = require('./models/ReferralCode');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 // Wrap server to support WebSockets
 const server = http.createServer(app);
 const io = socketIo(server);
