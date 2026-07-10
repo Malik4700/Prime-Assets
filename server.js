@@ -104,10 +104,10 @@ app.use(async (req, res, next) => {
 });
 
 // Mount main routing systems
-app.use('/auth', authRoutes);
+app.use('/admin/referral-manager', referralRoutes);
 app.use('/admin', adminRoutes);
 app.use('/superadmin', superadminRoutes);
-app.use('/', referralRoutes);
+app.use('/auth', authRoutes);
 
 // Landing Page Route
 app.get('/', (req, res) => {
