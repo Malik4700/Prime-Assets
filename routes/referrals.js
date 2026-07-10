@@ -12,7 +12,15 @@ const isAdmin = (req, res, next) => {
 };
 
 // [GET] Render the Admin Referral Management Portal Panel
+// Handles both base path variants gracefully
 router.get('/', isAdmin, async (req, res) => {
+    await renderReferralPortal(req, res);
+});
+router.get('/admin/referral-manager', isAdmin, async (req, res) => {
+    await renderReferralPortal(req, res);
+});
+
+async function renderReferralPortal(req, res) {
     try {
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
         
@@ -29,15 +37,15 @@ router.get('/', isAdmin, async (req, res) => {
         console.error("Error loading administration referral data track:", err);
         res.redirect('/admin/dashboard'); 
     }
-});
+}
 
-// [GET] Fallback handler to prevent "Cannot GET /admin/referral-manager/generate" errors
-router.get('/generate', isAdmin, (req, res) => {
-    res.redirect('/admin/referral-manager');
-});
+// [GET] Fallback handlers to prevent direct address bar "Cannot GET" errors
+router.get('/generate', isAdmin, (req, res) => { res.redirect('/admin/referral-manager'); });
+router.get('/admin/referral-manager/generate', isAdmin, (req, res) => { res.redirect('/admin/referral-manager'); });
 
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
-router.post('/generate', isAdmin, async (req, res) => {
+// Dual path mapping ensures both relative and absolute front-end fetches clear successfully
+const handleGeneratePayload = async (req, res) => {
     try {
         const targetUsername = req.body.referrerUsername || req.body.targetUsername;
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
@@ -91,6 +99,9 @@ router.post('/generate', isAdmin, async (req, res) => {
         console.error("Critical error compiling admin referral configuration generation:", err);
         return res.status(500).json({ success: false, error: "Internal transaction infrastructure error." });
     }
-});
+};
+
+router.post('/generate', isAdmin, handleGeneratePayload);
+router.post('/admin/referral-manager/generate', isAdmin, handleGeneratePayload);
 
 module.exports = router;
