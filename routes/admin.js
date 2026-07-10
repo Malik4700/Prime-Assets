@@ -899,7 +899,7 @@ router.post('/update-whatsapp-route', async (req, res) => {
 });
 
 // =========================================================================
-// REFERRAL MANAGER PAYLOAD ENGINE 
+// ADMINISTRATIVE REFERRAL GENERATOR ENGINE
 // =========================================================================
 router.post('/referral-manager/generate', isAdmin, async (req, res) => {
     try {
@@ -922,7 +922,7 @@ router.post('/referral-manager/generate', isAdmin, async (req, res) => {
         const generateMixedCode = () => {
             const dictionary = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let resultChain = '';
-            const generationLength = Math.floor(Math.random() * 2) + 7; // Generates 7-8 characters
+            const generationLength = Math.floor(Math.random() * 2) + 7; // Generates 7-8 chars
             for (let index = 0; index < generationLength; index++) {
                 resultChain += dictionary.charAt(Math.floor(Math.random() * dictionary.length));
             }
