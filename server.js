@@ -49,13 +49,13 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback_secret_key_2026',
     resave: false,
     saveUninitialized: false,
+    rolling: true, // <--- CRITICAL: Resets the cookie expiration on every page load/request
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
-        ttl: 14 * 24 * 60 * 60 // 14 days session tracking
+        ttl: 14 * 24 * 60 * 60 // 14 days session tracking in MongoDB
     }),
     cookie: { 
-        maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days cookie lifetime
-        expires: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days cookie lifetime (automatically sets dynamic expires)
         httpOnly: true,                  
         secure: process.env.NODE_ENV === 'production', 
         sameSite: 'lax'
