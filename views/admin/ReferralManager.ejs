@@ -86,3 +86,34 @@
         <% } %>
     </div>
 </div>
+
+<script>
+async function handleReferralGeneration(event) {
+    event.preventDefault(); // Prevents the browser from broken form reloads
+
+    const usernameInput = document.getElementById('targetUsername');
+    const targetUsername = usernameInput.value;
+
+    try {
+        const response = await fetch('/admin/referral-manager/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ targetUsername })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(); // Reloads to instantly view the new code in the table logs
+        } else {
+            alert('Error: ' + (data.error || 'Failed to compile referral code.'));
+        }
+    } catch (err) {
+        console.error('Network transaction error:', err);
+        alert('Internal interface link down. Check developer log console.');
+    }
+}
+</script>
