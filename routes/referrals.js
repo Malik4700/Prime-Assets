@@ -32,7 +32,6 @@ router.get('/', isAdmin, async (req, res) => {
 });
 
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
-// This perfectly handles the POST /admin/referral-manager/generate path combined with server.js
 router.post('/generate', isAdmin, async (req, res) => {
     try {
         const targetUsername = req.body.targetUsername || req.body.referrerUsername;
@@ -42,8 +41,9 @@ router.post('/generate', isAdmin, async (req, res) => {
             return res.status(400).json({ success: false, error: "Referrer name variable is required." });
         }
 
+        // If the admin session dropped, handle it gracefully for fetch
         if (!activePromoKey || !activePromoKey.trim()) {
-            return res.status(400).json({ success: false, error: "Administrative identification credentials missing." });
+            return res.status(401).json({ success: false, error: "Administrative identification credentials missing or session expired." });
         }
 
         const userInstance = await User.findOne({ username: targetUsername.trim() });
