@@ -12,13 +12,10 @@ const isAdmin = (req, res, next) => {
 };
 
 // [GET] Render the Admin Referral Management Portal Panel
-// Fixed: Path set to '/' because server.js mounts this file using app.use('/admin/referral-manager', ...)
 router.get('/', isAdmin, async (req, res) => {
     try {
-        // ALWAYS fallback cleanly to adminPromo first, matching how dashboard objects identify
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
         
-        // Find all referral codes belonging exclusively to this administrator (Case Insensitive Match)
         const activeCodesList = await ReferralCode.find({ 
             assignedAdminCode: { $regex: new RegExp("^" + activePromoKey.trim() + "$", "i") } 
         }).sort({ createdAt: -1 });
@@ -34,14 +31,15 @@ router.get('/', isAdmin, async (req, res) => {
     }
 });
 
+// [GET] Fallback handler to prevent "Cannot GET /admin/referral-manager/generate" errors
+router.get('/generate', isAdmin, (req, res) => {
+    res.redirect('/admin/referral-manager');
+});
+
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
-// Fixed: Path set to '/generate' which resolves exactly to /admin/referral-manager/generate
 router.post('/generate', isAdmin, async (req, res) => {
     try {
-        // Gracefully handle both destructured object formats or raw text inputs from payload
         const targetUsername = req.body.referrerUsername || req.body.targetUsername;
-        
-        // Match the identical session key structure used in the GET block
         const activePromoKey = req.session.adminPromo || req.session.adminCode || '';
 
         if (!targetUsername || !targetUsername.trim()) {
@@ -52,24 +50,21 @@ router.post('/generate', isAdmin, async (req, res) => {
             return res.status(400).json({ success: false, error: "Administrative identification credentials missing." });
         }
 
-        // Validate that the target username actually exists in your users table
         const userInstance = await User.findOne({ username: targetUsername.trim() });
         if (!userInstance) {
             return res.status(404).json({ success: false, error: `User configuration profile "${targetUsername}" not found inside directory.` });
         }
 
-        // Token generator logic loop
         const generateMixedCode = () => {
             const dictionary = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let resultChain = '';
-            const generationLength = Math.floor(Math.random() * 2) + 7; // Generates 7-8 chars
+            const generationLength = Math.floor(Math.random() * 2) + 7;
             for (let index = 0; index < generationLength; index++) {
                 resultChain += dictionary.charAt(Math.floor(Math.random() * dictionary.length));
             }
             return resultChain;
         };
 
-        // Guarantee distinct uniqueness against collision loops
         let codeCandidate = generateMixedCode();
         let isCollisionDetected = await ReferralCode.findOne({ code: codeCandidate });
         while (isCollisionDetected) {
