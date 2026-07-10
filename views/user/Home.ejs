@@ -570,7 +570,7 @@ function syncData() {
                 return;
             }
 
-            openConfirmModal(`Confirm transaction of $${amt.toFixed(2)} USD to ${net} network address?`, () => {
+            openConfirmModal(`Confirm transaction of $${amt.toFixed(2)} USD to ${net} network address? Notice: A $2 fee will be deducted under withdraw policy (Not applicable for beginner plan buyers)`, () => {
                 fetch('/user/request-withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -495,7 +495,7 @@
 
     // CORE TRANSACTION DISPATCH SETTLED METHOD (Untouched - Original code logic pipeline preserved)
     async function commitSettlementAction(withdrawalId, actionType) {
-        if (!confirm(`Are you sure you want to execute [${actionType.toUpperCase()}] on this withdrawal ticket request transaction? Notice: A $2 fee will be deducted under withdraw policy (Not applicable for beginner plan buyers) `)) return;
+        if (!confirm(`Are you sure you want to execute [${actionType.toUpperCase()}] on this withdrawal ticket request transaction?`)) return;
         
         try {
             const response = await fetch(`/admin/withdrawals/${actionType}`, {
