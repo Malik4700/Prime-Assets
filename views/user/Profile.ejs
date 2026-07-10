@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Identity | PRIME ASSETS HOLDINGS 4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(4, 23, 19, 0.45), rgba(2, 15, 12, 0.50)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .premium-bg-blend {
+            background-image: linear-gradient(rgba(4, 30, 22, 0.90), rgba(15, 23, 42, 0.95)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .chat-bg {
+            background-image: linear-gradient(rgba(4, 20, 15, 0.85), rgba(15, 23, 42, 0.90)), url('/BG2.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .premium-glass {
+            background: rgba(4, 25, 20, 0.70);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.5); border-radius: 99px; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col font-sans antialiased pb-24 select-none relative overflow-x-hidden">
+
+    <div id="blockadeOverlay" class="<%= (typeof user !== 'undefined' && user && user.isBlocked) ? 'flex' : 'hidden' %> fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex-col items-center justify-center text-center p-6">
+        <div class="w-16 h-16 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-lg animate-pulse">🔒</div>
+        <h1 class="text-white font-black text-lg uppercase tracking-widest">Account Restricted</h1>
+        <p class="text-slate-400 text-xs max-w-xs mt-1">This hardware node association network link has been suspended by administration security parameters.</p>
+    </div>
+
+    <div id="customAlert" class="fixed top-6 inset-x-4 max-w-md mx-auto premium-glass border-emerald-500/40 rounded-2xl p-4 shadow-2xl z-50 transform translate-y-[-160%] transition-transform duration-500 flex items-start space-x-3">
+        <div class="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 text-lg" id="alertIcon">✨</div>
+        <div class="flex-grow">
+            <h4 class="text-xs font-black uppercase tracking-wider text-white" id="alertTitle">System Message</h4>
+            <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed" id="alertMessage">Action logged successfully.</p>
+        </div>
+        <button onclick="dismissAlert()" class="text-slate-400 hover:text-white text-base font-bold px-1">&times;</button>
+    </div>
+
+    <header class="w-full premium-glass border-b border-emerald-500/10 sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-lg">
+        <span class="text-xs font-black tracking-widest text-white uppercase">My Profile ®</span>
+        <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></div>
+    </header>
+
+    <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-6">
+        
+        <div class="premium-glass rounded-[28px] p-6 shadow-xl flex flex-col items-center text-center relative overflow-hidden">
+            <div class="w-20 h-20 mb-3 bg-black/40 rounded-2xl border border-emerald-500/30 flex items-center justify-center text-2xl overflow-hidden shadow-inner inner-glow">
+                <% if (typeof user !== 'undefined' && user && user.profileImage) { %>
+                    <img src="<%= user.profileImage %>" class="w-full h-full object-cover" alt="Avatar">
+                <% } else { %> 👤 <% } %>
+            </div>
+            <h3 class="font-black text-base text-white tracking-tight mb-1" id="profileNodeUsername">
+                <%= (typeof user !== 'undefined' && user) ? user.username : '---' %>
+            </h3>
+            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Verified Account 🔰</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 premium-glass p-1.5 rounded-xl">
+            <button onclick="toggleIdentityDashboardTab('telemetry')" id="btnTabTelemetry" class="w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all bg-emerald-600 text-white shadow-md">
+                My Details 🫆
+            </button>
+            <button onclick="toggleIdentityDashboardTab('security')" id="btnTabSecurity" class="w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all text-slate-400 hover:text-white">
+                Security Update 🛡️
+            </button>
+        </div>
+
+        <div id="sectionTabTelemetry" class="premium-glass rounded-[24px] p-5 shadow-xl space-y-3 transition-all duration-300">
+            <div class="flex items-center space-x-2">
+                <span class="text-emerald-400">📊</span>
+                <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-200">Account Details (Secured)</h3>
+            </div>
+            <div class="divide-y divide-emerald-500/10 text-xs font-medium font-mono">
+                <div class="py-3 flex justify-between items-center"><span class="text-slate-400 text-[11px]">Username</span><span class="font-bold text-white" id="telemetryUsername"><%= user.username %></span></div>
+                <div class="py-3 flex justify-between items-center"><span class="text-slate-400 text-[11px]">Email</span><span class="font-bold text-slate-200 truncate max-w-[200px]" id="telemetryEmail"><%= user.email %></span></div>
+                <div class="py-3 flex justify-between items-center"><span class="text-slate-400 text-[11px]">Phone</span><span class="font-bold text-slate-200" id="telemetryPhone"><%= user.phone || '---' %></span></div>
+                <div class="py-3 flex justify-between items-center"><span class="text-slate-400 text-[11px]">Country</span><span class="font-bold text-slate-200" id="telemetryCountry"><%= user.country || '---' %></span></div>
+                <div class="py-3 flex justify-between items-center"><span class="text-slate-400 text-[11px]">Batch Code</span><span class="font-black text-emerald-400" id="telemetryAdminCode"><%= user.assignedAdminCode || '---' %></span></div>
+            </div>
+        </div>
+
+        <div id="sectionTabSecurity" class="premium-glass rounded-[24px] p-5 shadow-xl space-y-4 hidden transition-all duration-300">
+            <div class="flex items-center space-x-2">
+                <span class="text-emerald-400">🛡️</span>
+                <h3 class="text-[11px] font-black uppercase tracking-wider text-slate-200">Modify Login Key</h3>
+            </div>
+            <form id="securityCredentialsMutationForm" onsubmit="handleSecurityKeyRotation(event)" class="space-y-3">
+                <div class="space-y-1">
+                    <label class="block text-[9px] font-black uppercase tracking-wider text-slate-400">Current Login Key</label>
+                    <input type="password" required id="oldPasswordInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[9px] font-black uppercase tracking-wider text-slate-400">New Login Key</label>
+                    <input type="password" required id="newPasswordInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs py-2.5 rounded-xl transition-all uppercase tracking-wider shadow-md inner-glow border border-white/10 mt-2">
+                    Save New Key
+                </button>
+            </form>
+        </div>
+
+        <div class="space-y-3">
+            <button onclick="toggleLogoutModal(true)" class="w-full bg-rose-950/20 border border-rose-500/30 p-4 rounded-2xl text-left flex items-center justify-between hover:bg-rose-950/40 transition-all">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xl p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl">🚪</span>
+                    <div>
+                        <h4 class="text-xs font-black text-rose-400 uppercase tracking-wider">LOGOUT</h4>
+                        <p class="text-[9px] text-rose-500/70 mt-0.5 font-mono">Logout of current session</p>
+                    </div>
+                </div>
+                <span class="text-rose-400 font-black text-lg">&rarr;</span>
+            </button>
+        </div>
+
+        <div id="customLogoutModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300">
+            <div class="premium-glass border-rose-500/30 rounded-3xl p-6 shadow-2xl max-w-xs w-full text-center inner-glow transform scale-95 transition-transform duration-300">
+                <div class="w-12 h-12 mx-auto bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center text-xl mb-4">⚠️</div>
+                
+                <h3 class="text-xs font-black tracking-widest text-white uppercase mb-2">Confirm Termination</h3>
+                <p class="text-slate-400 font-mono text-[10px] leading-relaxed mb-6">
+                    Terminate account terminal authorization links? You will be signed out of this dashboard environment.
+                </p>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleLogoutModal(false)" class="w-full bg-black/40 border border-emerald-500/20 hover:border-emerald-500/40 text-slate-300 font-black text-[10px] py-2.5 rounded-xl transition-all uppercase tracking-wider">
+                        Cancel
+                    </button>
+                    <a href="/logout" class="w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black text-[10px] py-2.5 rounded-xl transition-all uppercase tracking-wider flex items-center justify-center shadow-md border border-white/10">
+                        Disconnect
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-0 inset-x-0 premium-glass border-t border-emerald-500/10 h-20 flex justify-around items-center z-30 px-6 shadow-2xl">
+        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">🏠</span><span class="text-[9px] uppercase tracking-wider font-black">Home</span>
+        </a>
+        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+        </a>
+        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
+            <span class="text-xl drop-shadow">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+        </a>
+    </nav>
+
+    <div id="draggableWhatsAppWrapper" class="fixed bottom-24 right-6 z-50 touch-none select-none">
+        <a href="https://wa.me/923000000000" id="whatsappFloatingLink" target="_blank" class="bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-2xl transition-transform duration-200 active:scale-95 flex items-center justify-center cursor-move group" style="box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);">
+            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.116.55 4.1 1.608 5.842L0 24l6.337-1.663c1.7.927 3.633 1.42 5.663 1.42 6.628 0 12.004-5.379 12.004-12.005C24.008 5.378 18.63 0 12.004 0zm6.604 17.037c-.27.755-1.564 1.383-2.15 1.436-.58.053-1.164.08-3.76-1.002-3.32-1.382-5.418-4.757-5.584-4.978-.166-.221-1.317-1.754-1.317-3.344 0-1.59.83-2.373 1.127-2.693.297-.32.653-.4.87-.4.218 0 .436 0 .626.01.2.01.466-.075.727.56.27.654.914 2.242.993 2.403.08.16.132.347.026.56-.105.213-.16.347-.318.53-.158.182-.332.406-.475.545-.16.155-.326.326-.14.646.185.32 1.226 2.01 2.636 3.266 1.815 1.616 3.345 2.115 3.812 2.348.467.233.74.214 1.018-.106.278-.32 1.217-1.414 1.543-1.895.327-.48.653-.4.1-.173-.553.226-3.52 1.442-3.834 1.53-.314.087-.522.043-.728-.152-.206-.195-.884-.962-1.07-1.163-.186-.201-.373-.227-.645-.07-.272.156-1.718.71-2.624 1.52-.716.64-1.196 1.418-1.336 1.66-.14.24-.015.37.107.492.11.11.243.284.364.425.122.14.163.24.244.4.082.16.04.3-.02.42-.06.12-.533 1.282-.73 1.755-.19.46-.395.385-.54.377-.14-.007-.3-.008-.46-.008z"/>
+            </svg>
+        </a>
+    </div>
+
+    <script>
+        function toggleIdentityDashboardTab(tabName) {
+            const tabTelemetry = document.getElementById('sectionTabTelemetry');
+            const tabSecurity = document.getElementById('sectionTabSecurity');
+            const btnTelemetry = document.getElementById('btnTabTelemetry');
+            const btnSecurity = document.getElementById('btnTabSecurity');
+
+            if (tabName === 'telemetry') {
+                tabTelemetry.classList.remove('hidden');
+                tabSecurity.classList.add('hidden');
+                btnTelemetry.className = "w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all bg-emerald-600 text-white shadow-md";
+                btnSecurity.className = "w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all text-slate-400 hover:text-white";
+            } else {
+                tabTelemetry.classList.add('hidden');
+                tabSecurity.classList.remove('hidden');
+                btnTelemetry.className = "w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all text-slate-400 hover:text-white";
+                btnSecurity.className = "w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all bg-emerald-600 text-white shadow-md";
+            }
+        }
+
+        function showAlertNotification(title, message, isError = false) {
+            const alertBox = document.getElementById('customAlert');
+            const icon = document.getElementById('alertIcon');
+            const tEl = document.getElementById('alertTitle');
+            const mEl = document.getElementById('alertMessage');
+
+            icon.innerText = isError ? "⚠️" : "✨";
+            tEl.innerText = title;
+            mEl.innerText = message;
+
+            alertBox.classList.remove('translate-y-[-160%]');
+            setTimeout(dismissAlert, 4000);
+        }
+
+        function dismissAlert() {
+            document.getElementById('customAlert').classList.add('translate-y-[-160%]');
+        }
+        
+        function toggleLogoutModal(shouldOpen) {
+            const modalElement = document.getElementById('customLogoutModal');
+            if (!modalElement) return;
+
+            if (shouldOpen) {
+                modalElement.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden'); // Locks page body scrolling
+            } else {
+                modalElement.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden'); // Unlocks page body scrolling
+            }
+        }
+        
+        async function handleSecurityKeyRotation(e) {
+            e.preventDefault();
+            const oldPassword = document.getElementById('oldPasswordInput').value;
+            const newPassword = document.getElementById('newPasswordInput').value;
+
+            try {
+                const res = await fetch('/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPassword, newPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlertNotification('Success', 'Security access key successfully rotated.');
+                    document.getElementById('securityCredentialsMutationForm').reset();
+                } else {
+                    showAlertNotification('Error', data.message || 'Key rotation rejected.', true);
+                }
+            } catch (err) {
+                showAlertNotification('Network Error', 'Failed to communicate with authentication matrix.', true);
+            }
+        }
+
+        // ============================================================================
+        // 🟢 WHATSAPP LIVE DATA ROUTING SYNCHRONIZER (DIAGNOSTIC & FORCED ATTACH)
+        // ============================================================================
+        (function initWhatsAppLinkNetworkSync() {
+            const syncWhatsAppEndpoint = () => {
+                fetch('/admin/user-sync-data')
+                    .then(res => res.json())
+                    .then(data => {
+                        //console.log("Matrix sync response received:", data);
+                        
+                        if (data && data.success && data.whatsappNumber) {
+                            const cleanNumber = data.whatsappNumber.toString().trim().replace(/\D/g, '');
+                            //console.log("Targeting number destination:", cleanNumber);
+                            
+                            if (!cleanNumber) return;
+
+                            // Force change all links matching wa.me across the document structure
+                            const elements = document.getElementsByTagName('a');
+                            let count = 0;
+                            for (let i = 0; i < elements.length; i++) {
+                                if (elements[i].href && elements[i].href.includes('wa.me')) {
+                                    elements[i].href = "https://wa.me/" + cleanNumber;
+                                    count++;
+                                }
+                            }
+                            //console.log(`Successfully updated ${count} WhatsApp interactive elements.`);
+                        } else {
+                            console.warn("Sync returned success but configuration number field was empty.");
+                        }
+                    })
+                    .catch(err => console.error("Identity panel support sync warning:", err));
+            };
+
+            // Run execution stack over staggered intervals to catch delayed layout mounts
+            syncWhatsAppEndpoint();
+            setTimeout(syncWhatsAppEndpoint, 500);
+            setTimeout(syncWhatsAppEndpoint, 1500);
+        })();
+
+        // Simple Touch/Mouse Drag Engine for the WhatsApp Floating button
+        (function setupDraggableInterface() {
+            const item = document.getElementById('draggableWhatsAppWrapper');
+            if (!item) return;
+
+            let active = false;
+            let currentX, currentY, initialX, initialY;
+            let xOffset = 0, yOffset = 0;
+
+            item.addEventListener("touchstart", dragStart, { passive: true });
+            document.addEventListener("touchend", dragEnd);
+            document.addEventListener("touchmove", drag, { passive: false });
+            item.addEventListener("mousedown", dragStart);
+            document.addEventListener("mouseup", dragEnd);
+            document.addEventListener("mousemove", drag);
+
+            function dragStart(e) {
+                let clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+                initialX = clientX - xOffset;
+                initialY = clientY - yOffset;
+                if (e.target === item || item.contains(e.target)) active = true;
+            }
+
+            function dragEnd() {
+                initialX = currentX;
+                initialY = currentY;
+                active = false;
+            }
+
+            function drag(e) {
+                if (!active) return;
+                if (e.cancelable) e.preventDefault();
+                let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+                currentX = clientX - initialX;
+                currentY = clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+                item.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+            }
+        })();
+    </script>
+</body>
+</html>

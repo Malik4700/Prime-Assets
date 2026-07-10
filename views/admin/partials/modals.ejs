@@ -1,0 +1,102 @@
+<div id="editUserModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b pb-3">
+            <div>
+                <h3 class="font-black text-base text-slate-900">Modify User Configuration</h3>
+                <p class="text-[11px] text-slate-400 font-medium">Target Account: <span id="modalTargetUsername">Username</span></p>
+                <input type="hidden" id="modalTargetUserId">
+            </div>
+            <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-900 text-xl font-bold">&times;</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Edit Account Balance</label>
+                <input type="number" id="inputBalance" class="w-full border rounded-xl px-3 py-2 text-xs font-bold focus:outline-indigo-500">
+            </div>
+            <div>
+                <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Edit Level Progress</label>
+                <input type="number" id="inputLevel" class="w-full border rounded-xl px-3 py-2 text-xs font-bold focus:outline-indigo-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Assign Performance Plan</label>
+            <select id="selectPlan" class="w-full border rounded-xl px-3 py-2 text-xs font-bold focus:outline-indigo-500 bg-white">
+                <option value="">No Active Plan Assigned</option>
+                <option value="15">15 Days Run Allocation</option>
+                <option value="30">30 Days Run Allocation</option>
+                <option value="60">60 Days Run Allocation</option>
+                <option value="90">90 Days Run Allocation</option>
+                <option value="180">180 Days Run Allocation</option>
+                <option value="365">365 Days Run Allocation</option>
+            </select>
+        </div>
+
+        <div class="space-y-2.5">
+            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Account Safety Access Controls</label>
+            <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-black tracking-wide uppercase">
+                <label class="border p-2.5 rounded-xl flex items-center justify-center space-x-1.5 bg-slate-50 cursor-pointer select-none">
+                    <input type="checkbox" id="checkFreeze" class="rounded text-indigo-600 focus:ring-0"><span>Freeze Acc</span>
+                </label>
+                <label class="border p-2.5 rounded-xl flex items-center justify-center space-x-1.5 bg-slate-50 cursor-pointer select-none">
+                    <input type="checkbox" id="checkRestrictBal" class="rounded text-indigo-600 focus:ring-0"><span>Lock Bal</span>
+                </label>
+                <label class="border p-2.5 rounded-xl flex items-center justify-center space-x-1.5 bg-slate-50 cursor-pointer select-none">
+                    <input type="checkbox" id="checkRestrictWd" class="rounded text-indigo-600 focus:ring-0"><span>Block WD</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex space-x-3 pt-2">
+            <button onclick="closeEditModal()" class="w-1/2 bg-slate-100 text-slate-600 font-bold text-xs py-3 rounded-xl">Cancel</button>
+            <button onclick="saveUserConfig()" class="w-1/2 bg-indigo-600 text-white font-bold text-xs py-3 rounded-xl shadow-lg shadow-indigo-600/20">Save Modification Matrix</button>
+        </div>
+    </div>
+</div>
+
+<div id="passwordUserModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+            <div>
+                <h3 class="font-black text-base text-slate-900">Change Credential Node</h3>
+                <p class="text-[11px] text-slate-400 font-medium">Target: <span id="passwordTargetUsername">Username</span></p>
+                <input type="hidden" id="passwordTargetUserId">
+            </div>
+            <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-900 text-xl font-bold">&times;</button>
+        </div>
+        <div>
+            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Set New System Password</label>
+            <input type="password" id="inputNewPassword" placeholder="••••••••" class="w-full border rounded-xl px-3 py-2 text-xs font-bold focus:outline-indigo-500">
+        </div>
+        <div class="flex space-x-3 pt-2">
+            <button onclick="closePasswordModal()" class="w-1/2 bg-slate-100 text-slate-600 font-bold text-xs py-2.5 rounded-xl">Dismiss</button>
+            <button onclick="saveUserPassword()" class="w-1/2 bg-amber-500 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-amber-500/20">Commit Sync</button>
+        </div>
+    </div>
+</div>
+
+<div id="siteNotifyAlertModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-[60] p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+        <div id="alertIconDisplay" class="text-3xl mx-auto flex items-center justify-center w-12 h-12 rounded-full">🔔</div>
+        <div class="space-y-1">
+            <h4 id="alertTitleText" class="font-black text-sm uppercase tracking-wide text-slate-900">System Information</h4>
+            <p id="alertBodyText" class="text-xs text-slate-500 font-medium leading-relaxed">System communication execution completed down the channel cleanly.</p>
+        </div>
+        <button onclick="closeNotifyAlert()" class="w-full bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition-transform active:scale-95">Acknowledge</button>
+    </div>
+</div>
+
+<div id="siteConfirmModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+        <div class="text-3xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center w-12 h-12 rounded-full">⚠️</div>
+        <div class="space-y-1">
+            <h4 class="font-black text-sm uppercase tracking-wide text-rose-600">Irreversible Network Command</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Are you absolutely sure you want to permanently purge this database node identity? This cannot be undone.</p>
+        </div>
+        <div class="flex space-x-3 pt-1">
+            <button onclick="closeConfirmModal()" class="w-1/2 bg-slate-100 text-slate-600 font-bold text-xs py-2.5 rounded-xl">Cancel Operation</button>
+            <button id="confirmExecuteBtn" class="w-1/2 bg-rose-600 text-white font-bold text-xs py-2.5 rounded-xl shadow-lg shadow-rose-600/20">Confirm Purge</button>
+        </div>
+    </div>
+</div>

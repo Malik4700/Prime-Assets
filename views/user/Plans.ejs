@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Portfolios | PRIME ASSETS HOLDINGS 4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(4, 23, 19, 0.45), rgba(2, 15, 12, 0.50)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .premium-glass {
+            background: rgba(4, 25, 20, 0.70);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+        }
+        .text-glow {
+            text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.3);
+            border-radius: 99px;
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen font-sans antialiased select-none pb-24 custom-scrollbar">
+
+    <div id="customAlert" class="fixed top-6 left-1/2 -translate-x-1/2 z-[99999] w-[90%] max-w-md bg-slate-900/95 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-4 shadow-2xl flex items-start gap-3 transform translate-y-[-160%] transition-transform duration-500 inner-glow">
+        <div id="alertIcon" class="bg-emerald-500/10 text-emerald-400 p-2 rounded-xl text-lg font-bold">✨</div>
+        <div class="flex-grow">
+            <h4 id="alertTitle" class="font-black text-xs text-white uppercase tracking-wider">System Broadcast</h4>
+            <p id="alertMessage" class="text-[11px] text-slate-300 font-medium mt-0.5 leading-relaxed">Cluster synchronization successful.</p>
+        </div>
+        <button onclick="dismissAlert()" class="text-slate-500 hover:text-slate-300 font-black text-sm">&times;</button>
+    </div>
+
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl inner-glow transform transition-transform scale-100">
+            <div class="bg-emerald-500/10 text-emerald-400 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto text-xl mb-4">🚀</div>
+            <h3 class="font-black text-white text-sm uppercase tracking-wider mb-2">Confirm Portfolio Switch</h3>
+            <p id="confirmModalText" class="text-xs text-slate-400 font-medium leading-relaxed mb-6">Are you sure you want to initialize this configuration parameters layout handle?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeConfirmModal(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider py-3 rounded-xl transition-colors">Cancel</button>
+                <button onclick="closeConfirmModal(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-colors shadow-lg shadow-emerald-900/30">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 max-w-5xl mx-auto space-y-6">
+        
+        <div class="flex items-center justify-between bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl backdrop-blur-md">
+            <div>
+                <h2 class="text-xl font-black text-white tracking-tight uppercase flex items-center gap-1.5">
+                    Prime Assets Tiers <span class="text-emerald-400 text-glow">⚡</span>
+                </h2>
+                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Unlock peak performance, one threshold at a time.</p>
+            </div>
+            <div class="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right">
+                <span class="text-[8px] uppercase font-black tracking-wider text-slate-400 block">My Balance</span>
+                <span class="text-sm font-black text-emerald-400 tracking-tight text-glow font-mono">
+                    $<%= (typeof user !== 'undefined' && user.balance) ? parseFloat(user.balance).toFixed(2) : '0.00' %> USD
+                </span>
+            </div>
+        </div>
+
+        <div class="relative">
+            <% 
+                const hasActivePlan = (typeof user !== 'undefined' && user.currentPlan && user.currentPlan !== 'None' && user.currentPlan !== '');
+                const isPendingRequest = (typeof user !== 'undefined' && user.planRequestStatus === 'pending');
+                const isUserLockedGlobal = hasActivePlan || isPendingRequest;
+            %>
+
+            <% if (isPendingRequest) { %>
+                <div class="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg animate-pulse">📩</span>
+                        <div>
+                            <h4 class="text-[11px] font-black text-white uppercase tracking-wider">Order Processing</h4>
+                            <p class="text-[10px] text-amber-300 font-medium">Pending validation: <span class="font-bold text-white"><%= user.requestedPlanName || 'Portfolio Track' %></span>. Wait for slot validity handles.</p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <% 
+                const staticTiers = [
+                    { id: "7", tier: "Tier 1 (Beginner Only)", name: "7 Days Beginner Plan", cost: 35, yield: "20% Total Profit", desc: "Entry-level starter array providing a baseline yield track configuration over 7 Days. One-time purchase limits apply.", duration: "7 Days" },
+                    { id: "15", tier: "Tier 2", name: "15 Days Standard Plan", cost: 70, yield: "20% Total Profit", desc: "Standard entry layout tier balancing capital isolation depth and metric returns over 15 Days.", duration: "15 Days" },
+                    { id: "30", tier: "Tier 3", name: "30 Days Pro Plan", cost: 100, yield: "25% Total Profit", desc: "Advanced asset framework architecture providing optimized compounding tracks over 30 Days.", duration: "30 Days" },
+                    { id: "30_premium", tier: "Tier 4", name: "30 Days VIP Elite Plan", cost: 200, yield: "30% Total Profit", desc: "High-volume configuration cluster optimized for enhanced short-term validation over 30 Days.", duration: "30 Days" },
+                    { id: "60", tier: "Tier 5", name: "60 Days Royal Wealth Plan", cost: 500, yield: "40% Total Profit", desc: "Maximized algorithmic routing matrix providing deep liquidity rewards over 60 Days.", duration: "60 Days" },
+                    { id: "60_platinum", tier: "Tier 6", name: "60 Days Platinum Elite Plan", cost: 1000, yield: "50% Total Profit", desc: "Apex level institution-grade infrastructure giving ultimate operational weight over 60 Days.", duration: "60 Days" }
+                ];
+                %>
+
+                <% for (let p of staticTiers) { 
+                    const isThisActiveRunning = (typeof user !== 'undefined' && user.currentPlan === p.id);
+                    const hasBoughtBeginnerBefore = (p.id === '7' && typeof user !== 'undefined' && (user.hasBoughtBeginner === true || user.hasBoughtBeginner === 'true'));
+                    const isFadedAndDisabled = (isUserLockedGlobal && !isThisActiveRunning) || hasBoughtBeginnerBefore;
+                %>
+                    <div class="premium-glass rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 inner-glow relative group <%= isFadedAndDisabled ? 'opacity-35 pointer-events-none filter blur-[0.5px]' : '' %> <%= isThisActiveRunning ? 'border-emerald-500 bg-slate-900/90' : 'hover:border-slate-700/60' %>">
+                        
+                        <% if (isThisActiveRunning) { %>
+                            <div class="absolute -top-2.5 right-4 bg-emerald-500 text-slate-950 font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md text-glow">Running</div>
+                        <% } %>
+
+                        <div>
+                             <div class="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-3">
+                                <div>
+                                    <span class="text-[9px] uppercase font-black tracking-widest text-emerald-400 block mb-0.5"><%= p.tier %></span>
+                                    <h3 class="font-black text-xs text-white tracking-wide uppercase"><%= p.name %></h3>
+                                </div>
+                                <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-950/40 px-2 py-0.5 rounded-lg border border-slate-800/50"><%= p.duration %></span>
+                            </div>
+
+                            <p class="text-[10px] text-slate-400 font-medium leading-relaxed mb-4"><%= p.desc %></p>
+
+                            <div class="grid grid-cols-2 gap-3 bg-slate-950/30 border border-slate-900 p-3 rounded-xl mb-4">
+                                <div>
+                                    <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">Activation Cost</span>
+                                    <span class="text-xs font-black text-white font-mono">$<%= p.cost %>.00 USD</span>
+                                </div>
+                                <div>
+                                    <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">EOP Benefit</span>
+                                    <span class="text-xs font-black text-emerald-400 text-glow font-mono"><%= p.yield %></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <% if (isThisActiveRunning) { %>
+                                <button disabled class="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-[11px] uppercase py-2.5 rounded-xl cursor-not-allowed tracking-widest">
+                                    Currently Running
+                                </button>
+                            <% } else if (hasBoughtBeginnerBefore) { %>
+                                <button disabled class="w-full bg-rose-500/10 border border-rose-500/20 text-rose-400 font-black text-[11px] uppercase py-2.5 rounded-xl cursor-not-allowed tracking-widest">
+                                    Limit Exceeded
+                                </button>
+                            <% } else { %>
+                                <button 
+                                    onclick="initiatePlanBuyWorkflow('<%= p.id %>', '<%= p.name %>', '<%= p.cost %>')" 
+                                    class="w-full bg-slate-950 hover:bg-emerald-600 border border-slate-800 hover:border-emerald-500 text-slate-300 hover:text-white font-black text-[11px] uppercase py-2.5 rounded-xl transition-all duration-300 transform active:scale-95 tracking-widest">
+                                    Click To Buy Now
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 h-16 bg-slate-900/90 border-t border-slate-800 backdrop-blur-lg z-40 flex items-center justify-around px-4">
+        <a href="/user/home" class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-200 transition-colors py-1 w-16">
+            <span class="text-lg">🏠</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider mt-0.5">Home</span>
+        </a>
+        <a href="/user/plans" class="flex flex-col items-center justify-center text-emerald-400 transition-colors py-1 w-16">
+            <span class="text-lg text-glow">⚡</span>
+            <span class="text-[9px] font-black uppercase tracking-wider mt-0.5 text-glow">Plans</span>
+        </a>
+        <a href="/user/profile" class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-200 transition-colors py-1 w-16">
+            <span class="text-lg">👤</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider mt-0.5">Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        const currentUserBalance = parseFloat("<%= (typeof user !== 'undefined' && user.balance) ? user.balance : 0 %>");
+        let confirmationSuccessAction = null;
+        let selectedPlanMetadata = null;
+
+        function initiatePlanBuyWorkflow(planId, planName, planCost) {
+            if (currentUserBalance < parseFloat(planCost)) {
+                triggerAppAlert(
+                    'Balance Insufficient', 
+                   `Your current balance ($${currentUserBalance.toFixed(2)} USD) is below the required threshold of $${planCost}.00 USD.`, 
+                    '⚠️'
+                );
+                return;
+            }
+
+            selectedPlanMetadata = { planId, planName, planCost };
+            openConfirmModal(
+                `Confirm deployment track shift to ${planName}? A processing hold of $${planCost}.00 USD will be staged onto your ledger structure.`, 
+                executePlanTransactionCommit
+            );
+        }
+
+        function executePlanTransactionCommit() {
+            if (!selectedPlanMetadata) return;
+            const { planId, planName, planCost } = selectedPlanMetadata;
+            fetch('/user/request-plan-buy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planDays: planId, planName: planName, planCost: parseFloat(planCost) })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    triggerAppAlert('Request Dispatched', 'Your configuration setup has been sent down-channel. Awaiting authentication.', '📩');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    triggerAppAlert('Transaction Refused', data.msg || 'Target line execution refused.', '❌');
+                }
+            })
+            .catch(() => {
+                triggerAppAlert('Network drop', 'Lost dynamic loop handshake with primary tracking array.', '❌');
+            });
+        }
+
+        function triggerAppAlert(title, message, icon = '✨') {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('alertIcon').innerText = icon;
+            const alertBox = document.getElementById('customAlert');
+            alertBox.classList.replace('translate-y-[-160%]', 'translate-y-0');
+            setTimeout(dismissAlert, 4000);
+        }
+
+        function dismissAlert() {
+            const alertBox = document.getElementById('customAlert');
+            if(alertBox) alertBox.classList.replace('translate-y-0', 'translate-y-[-160%]');
+        }
+
+        function openConfirmModal(text, successCallback) {
+            document.getElementById('confirmModalText').innerText = text;
+            confirmationSuccessAction = successCallback;
+            document.getElementById('confirmModal').classList.replace('hidden', 'flex');
+        }
+
+        function closeConfirmModal(isConfirmed) {
+            document.getElementById('confirmModal').classList.replace('hidden', 'flex');
+            if (isConfirmed && confirmationSuccessAction) confirmationSuccessAction();
+            confirmationSuccessAction = null;
+            selectedPlanMetadata = null;
+        }
+    </script>
+</body>
+</html>

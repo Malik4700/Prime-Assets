@@ -1,0 +1,92 @@
+<div class="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 max-w-xl">
+    <div class="flex items-center space-x-3 border-b border-slate-100 pb-4 mb-5">
+        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg shadow-sm">
+            📞
+        </div>
+        <div>
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">WhatsApp Routing Controller</h3>
+            <p class="text-[10px] text-slate-400 font-mono mt-0.5">Configure the active communication baseline for your isolated nodes.</p>
+        </div>
+    </div>
+
+    <form id="adminWhatsAppConfigForm" class="space-y-4" onsubmit="return false;">
+        <div class="space-y-1.5">
+            <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500">Target Support Contact Number</label>
+            <input type="text" id="inputWhatsAppPhoneNumber" placeholder="e.g., 923001234567" required 
+                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-colors font-mono">
+        </div>
+
+        <button type="button" id="btnCommitWhatsApp"
+                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-wider py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99]">
+            Commit Network Baseline
+        </button>
+    </form>
+</div>
+
+<script>
+    // Global Scoped Execution Block to avoid double declarations
+    (function () {
+        // 🟢 Robust fetcher that retries until the field is rendered in the DOM
+        const safelyFetchWhatsAppValue = () => {
+            fetch('/admin/get-whatsapp-route')
+                .then(res => res.json())
+                .then(data => {
+                    const field = document.getElementById('inputWhatsAppPhoneNumber');
+                    if (field && data && data.success && data.whatsappNumber !== undefined) {
+                        field.value = data.whatsappNumber;
+                    }
+                })
+                .catch(err => console.error("Failed to read routing state:", err));
+        };
+
+        // Run fetch loops at multiple intervals to capture dynamic tab renders
+        safelyFetchWhatsAppValue();
+        setTimeout(safelyFetchWhatsAppValue, 100);
+        setTimeout(safelyFetchWhatsAppValue, 300);
+        setTimeout(safelyFetchWhatsAppValue, 600);
+
+        // 🟢 Global Event Delegation: Removes dependencies on direct local target lifetimes
+        document.removeEventListener('click', handleGlobalWhatsAppClick);
+        document.addEventListener('click', handleGlobalWhatsAppClick);
+
+        function handleGlobalWhatsAppClick(e) {
+            // Check if the clicked target or its closest ancestor is our commit button
+            const targetBtn = e.target.closest('#btnCommitWhatsApp');
+            if (!targetBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const targetInput = document.getElementById('inputWhatsAppPhoneNumber');
+            if (!targetInput) {
+                alert('Input target context not found in active view template.');
+                return;
+            }
+
+            const whatsappNumber = targetInput.value.trim();
+
+            fetch('/admin/update-whatsapp-route', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ whatsappNumber: whatsappNumber })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showNotification === 'function') {
+                        showNotification('Baseline Updated', 'WhatsApp configuration synchronized successfully.');
+                    } else {
+                        alert('Configuration synchronized successfully.');
+                    }
+                    safelyFetchWhatsAppValue();
+                } else {
+                    alert(data.msg || 'Configuration update failed.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Network communication fault encountered.');
+            });
+        }
+    })();
+</script>

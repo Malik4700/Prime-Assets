@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Core Control | Superadmin Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(4, 23, 19, 0.45), rgba(2, 15, 12, 0.50)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .premium-glass {
+            background: rgba(4, 25, 20, 0.70);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+        }
+        .super-view { display: none; }
+        .super-view.active { display: block; }
+    </style>
+</head>
+<body class="bg-[#020f0c] text-slate-100 min-h-screen flex font-sans antialiased select-none">
+
+    <aside class="w-64 bg-slate-950/80 backdrop-blur-xl text-slate-300 flex flex-col fixed inset-y-0 left-0 z-30 shadow-2xl border-r border-emerald-500/10">
+        <div class="px-6 py-5 border-b border-emerald-500/10 flex flex-col space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black tracking-wider text-white">PRIME ASSETS 4.0</span>
+                <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 font-bold uppercase">ROOT ADMIN</span>
+            </div>
+            <div class="bg-black/40 rounded-xl p-2.5 border border-emerald-500/10 text-center">
+                <p class="text-[9px] font-black text-slate-400 tracking-widest uppercase">System Security Level</p>
+                <p class="text-xs font-mono font-black text-emerald-400 tracking-widest mt-0.5">UNRESTRICTED ACCESS</p>
+            </div>
+        </div>
+
+        <nav class="flex-grow p-4 space-y-1.5 font-medium text-xs tracking-wide uppercase">
+            <button onclick="switchSuperView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold">
+                <span>🛡️</span><span>Global Ledger</span>
+            </button>
+            <button onclick="switchSuperView('admins')" id="nav-admins" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+                <span>💼</span><span>Manage Manager Nodes</span>
+            </button>
+        </nav>
+
+        <div class="px-4 pb-2">
+            <form action="/superadmin/toggle-maintenance" method="POST" onsubmit="return confirm('WARNING: Triggering global maintenance updates structural access flags across all sub-nodes. Proceed?');">
+                <button type="submit" class="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider border transition-all duration-300 <%= typeof isMaintenanceActive !== 'undefined' && isMaintenanceActive ? 'bg-amber-600/20 border-amber-500 text-amber-400 shadow-lg shadow-amber-500/10 animate-pulse' : 'bg-rose-600/20 border-rose-500/30 text-rose-400 hover:bg-rose-600 hover:text-white' %>">
+                    <span>⚡</span>
+                    <span><%= typeof isMaintenanceActive !== 'undefined' && isMaintenanceActive ? 'System Offline' : 'Trigger Maintenance' %></span>
+                </button>
+            </form>
+        </div>
+
+        <div class="p-4 border-t border-emerald-500/10 text-[10px] text-slate-500 font-bold tracking-wider">
+            <a href="/auth/logout" class="block text-center bg-black/40 border border-emerald-500/10 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 rounded-xl py-2.5 transition-all mb-3">ROOT DISCONNECT</a>
+            <p class="text-center">&copy; 2026 ROOT LAYER</p>
+        </div>
+    </aside>
+
+    <main class="flex-grow pl-64 min-h-screen flex flex-col">
+        <header class="bg-slate-950/40 backdrop-blur-md border-b border-emerald-500/10 h-16 flex items-center justify-between px-8 sticky top-0 z-20">
+            <h2 id="viewTitle" class="text-xs font-black uppercase tracking-wider text-slate-400">Global Ledger</h2>
+            
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 text-xs font-bold text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>Global Database Live Connection</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 flex-grow max-w-6xl w-full mx-auto space-y-8">
+
+            <section id="view-overview" class="super-view active space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="premium-glass inner-glow p-5 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Global System Deposit Pool</p>
+                        <h3 class="text-2xl font-black text-white font-mono">
+                            $<%= typeof totalDeposits !== 'undefined' ? totalDeposits.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00' %> <span class="text-xs text-slate-400 font-sans font-normal">USD</span>
+                        </h3>
+                    </div>
+                    <div class="premium-glass inner-glow p-5 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Total Network Admins Spawned</p>
+                        <h3 class="text-2xl font-black text-white font-mono">
+                            <%= typeof admins !== 'undefined' ? admins.length : 0 %> <span class="text-xs text-slate-400 font-sans font-normal">Managers</span>
+                        </h3>
+                    </div>
+                    <div class="premium-glass inner-glow p-5 rounded-2xl shadow-sm">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Total Tenant End Users</p>
+                        <h3 class="text-2xl font-black text-white font-mono">
+                            <%= typeof totalUsersCount !== 'undefined' ? totalUsersCount : 0 %> <span class="text-xs text-slate-400 font-sans font-normal">Users</span>
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Hierarchical Node Tier Breakdowns</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <% for(let t = 1; t <= 6; t++) { 
+                            let tierKey = 'tier' + t;
+                            let tierData = typeof tierMetrics !== 'undefined' && tierMetrics[tierKey] ? tierMetrics[tierKey] : { admins: 0, users: 0, deposits: 0, withdrawals: 0, activePlans: 0 };
+                        %>
+                            <div class="premium-glass inner-glow p-4 rounded-2xl border border-emerald-500/10 space-y-3.5">
+                                <div class="flex items-center justify-between border-b border-emerald-500/10 pb-2">
+                                    <span class="text-xs font-black uppercase tracking-wider text-white">Tier Breakdown <%= t %></span>
+                                    <span class="text-[9px] bg-emerald-500/10 text-emerald-400 font-mono px-2 py-0.5 rounded border border-emerald-500/20 font-bold">LVL_0<%= t %></span>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-2 text-center">
+                                    <div class="bg-black/30 p-2 rounded-xl border border-white/5">
+                                        <span class="block text-[8px] uppercase tracking-wider text-slate-400 font-bold">Admins</span>
+                                        <span class="text-xs font-mono font-black text-white"><%= tierData.admins %></span>
+                                    </div>
+                                    <div class="bg-black/30 p-2 rounded-xl border border-white/5">
+                                        <span class="block text-[8px] uppercase tracking-wider text-slate-400 font-bold">Users</span>
+                                        <span class="text-xs font-mono font-black text-white"><%= tierData.users %></span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5 text-[11px] font-medium font-mono text-slate-300">
+                                    <div class="flex justify-between items-center bg-black/20 px-2.5 py-1.5 rounded-lg">
+                                        <span class="text-slate-400 font-sans text-[10px] uppercase font-bold">Deposited</span>
+                                        <span class="text-emerald-400 font-bold">$<%= Number(tierData.deposits).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-black/20 px-2.5 py-1.5 rounded-lg">
+                                        <span class="text-slate-400 font-sans text-[10px] uppercase font-bold">Withdrawn</span>
+                                        <span class="text-rose-400 font-bold">$<%= Number(tierData.withdrawals).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-black/20 px-2.5 py-1.5 rounded-lg">
+                                        <span class="text-slate-400 font-sans text-[10px] uppercase font-bold">Active Plans</span>
+                                        <span class="text-white font-bold"><%= tierData.activePlans %> Allocated</span>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-admins" class="super-view space-y-6">
+                <div class="premium-glass inner-glow rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="font-black text-base text-white mb-1">Manager Accounts Hierarchy</h3>
+                            <p class="text-xs text-slate-400 font-medium">Provision new isolated Admins and map their unique tracking promo codes.</p>
+                        </div>
+                        <button onclick="openCreateAdminModal()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md border border-white/10 uppercase tracking-wider">
+                            + Provision New Admin
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-emerald-500/10 text-slate-400 font-bold uppercase tracking-wider">
+                                    <th class="pb-3 font-bold pl-2">Manager Credentials</th>
+                                    <th class="pb-3 font-bold">Tracking Promo Code</th>
+                                    <th class="pb-3 font-bold">Bound Users Count</th>
+                                    <th class="pb-3 font-bold text-right pr-2">Operational State</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-emerald-500/5 font-medium">
+                                <% if (typeof admins !== 'undefined' && admins.length > 0) { %>
+                                    <% admins.forEach(admin => { %>
+                                        <tr class="text-slate-300 hover:bg-white/5 transition-colors">
+                                            <td class="py-4 pl-2">
+                                                <span class="font-bold text-white block text-sm"><%= admin.username %></span>
+                                                <span class="text-[10px] text-slate-400 font-mono block"><%= admin.email %></span>
+                                            </td>
+                                            <td class="py-4">
+                                                <span class="px-2.5 py-1 rounded bg-black/40 text-emerald-400 font-mono font-black tracking-widest text-xs border border-emerald-500/20">
+                                                    <%= admin.assignedAdminCode %>
+                                                </span>
+                                            </td>
+                                            <td class="py-4 text-slate-400 font-bold">
+                                                <%= admin.userCount || 0 %> Active Users
+                                            </td>
+                                            <td class="py-4 pr-2 flex items-center justify-end space-x-3 text-right">
+                                                <% if (admin.isBlocked) { %>
+                                                    <span class="text-[9px] bg-rose-500/20 border border-rose-500/30 text-rose-400 px-2 py-1 rounded font-bold uppercase tracking-wider">Deactivated</span>
+                                                <% } else { %>
+                                                    <span class="text-[9px] bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-2 py-1 rounded font-bold uppercase tracking-wider">Active Workspace</span>
+                                                <% } %>
+
+                                                <div class="flex items-center space-x-1 border-l pl-3 border-emerald-500/10">
+                                                    <form action="/superadmin/toggle-status/<%= admin._id %>" method="POST" class="inline">
+                                                        <button type="submit" class="font-bold text-[10px] px-2.5 py-1.5 rounded-xl border transition-all uppercase tracking-wider <%= admin.isBlocked ? 'bg-emerald-600 border-white/10 text-white hover:bg-emerald-500' : 'bg-black/40 border-emerald-500/20 text-slate-300 hover:bg-white/5' %>">
+                                                            <%= admin.isBlocked ? 'Activate' : 'Deactivate' %>
+                                                        </button>
+                                                    </form>
+
+                                                    <form action="/superadmin/delete-account/<%= admin._id %>" method="POST" class="inline" onsubmit="return confirm('Drop this admin entirely from core schema infrastructure? All bindings will break.');">
+                                                        <button type="submit" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 font-bold text-[10px] px-2.5 py-1.5 rounded-xl border border-rose-500/20 transition-all uppercase tracking-wider">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="4" class="py-8 text-center text-slate-400 font-bold">
+                                            No managed admin nodes spawned yet.
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="createAdminModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="premium-glass inner-glow rounded-[28px] p-6 max-w-md w-full shadow-2xl space-y-4 text-slate-100">
+            <div class="flex justify-between items-center border-b border-emerald-500/10 pb-3">
+                <div>
+                    <h3 class="font-black text-base text-white tracking-tight">Provision Manager Node</h3>
+                    <p class="text-[11px] text-slate-400 font-medium font-mono mt-0.5">Creates isolated Admin workspace linked to global database.</p>
+                </div>
+                <button onclick="closeCreateAdminModal()" class="text-slate-400 hover:text-white text-2xl font-bold transition-colors">&times;</button>
+            </div>
+
+            <form action="/superadmin/create-admin" method="POST" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Admin Username</label>
+                    <input type="text" name="username" required placeholder="e.g., Alpha_Manager" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Admin Email Address</label>
+                    <input type="email" name="email" required placeholder="manager@system.com" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Account Secret Access Password</label>
+                    <input type="password" name="password" required class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">Custom Dedicated Promo Code</label>
+                    <input type="text" name="promoCode" required placeholder="e.g., MGRCODE100" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl px-3 py-2.5 text-xs font-mono font-black uppercase tracking-widest text-emerald-400 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeCreateAdminModal()" class="w-1/2 border border-emerald-500/10 hover:bg-white/5 text-slate-300 text-xs font-bold py-3 rounded-xl transition-all uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="w-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black py-3 rounded-xl transition-all uppercase tracking-wider shadow-lg inner-glow border border-white/10">Generate Admin Ledger</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchSuperView(viewId) {
+            document.querySelectorAll('.super-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+
+            const labels = { overview: 'Global Ledger', admins: 'Manage Manager Nodes' };
+            document.getElementById('viewTitle').innerText = labels[viewId];
+
+            const items = ['overview', 'admins'];
+            items.forEach(i => {
+                const btn = document.getElementById(`nav-${i}`);
+                if(i === viewId) {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold";
+                } else {
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400";
+                }
+            });
+        }
+
+        function openCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('hidden', 'flex'); }
+        function closeCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('flex', 'hidden'); }
+    </script>
+</body>
+</html>

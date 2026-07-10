@@ -1,0 +1,52 @@
+<aside class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-30 shadow-xl border-r border-slate-800">
+    <div class="px-6 py-5 border-b border-slate-800 flex flex-col space-y-2">
+        <div class="flex items-center justify-between">
+            <span class="text-lg font-black tracking-wider text-white">PRIME ASSETS HOLDINGS 4.0</span>
+            <span class="text-[9px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 font-bold uppercase">MGR Panel</span>
+        </div>
+        <div class="bg-slate-800/60 rounded-xl p-2.5 border border-slate-700 text-center">
+            <p class="text-[9px] font-black text-slate-400 tracking-widest uppercase">My Invite Code</p>
+            <p class="text-xs font-mono font-black text-emerald-400 tracking-widest mt-0.5"><%= (typeof adminPromo !== 'undefined') ? adminPromo : 'N/A' %></p>
+        </div>
+    </div>
+
+    <nav class="flex-grow p-4 space-y-1.5 font-medium text-xs tracking-wide uppercase">
+        <button onclick="switchAdminView('home')" data-view="home" class="sidebar-link active w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+            <span>📊</span>
+            <span>Overview Core</span>
+        </button>
+
+        <button onclick="switchAdminView('users')" data-view="users" class="sidebar-link w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+            <span>👥</span>
+            <span>User Directory</span>
+        </button>
+
+        <button onclick="switchAdminView('plansManagement')" data-view="plansManagement" class="sidebar-link w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+            <span>📈</span>
+            <span>Plans Management</span>
+        </button>
+
+
+        <button onclick="switchAdminView('withdrawals')" data-view="withdrawals" class="sidebar-link w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+            <span>🏦</span>
+            <span>Remittance Orders</span>
+        </button>
+
+        <button onclick="switchAdminView('whatsappConfig');" class="sidebar-link w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+             <span>📞</span>
+             <span>WhatsApp Channel</span>
+        </button>
+
+        <button onclick="switchAdminView('referrals')" data-view="referrals" class="sidebar-link w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-wider text-slate-400 hover:bg-slate-800 hover:text-slate-200 [&.active]:bg-emerald-50 [&.active]:text-emerald-700">
+            <span>🔗</span>
+            <span>Referral Network</span>
+        </button>
+    </nav>
+    </nav>
+
+    <div class="p-4 border-t border-slate-800">
+        <a href="/auth/logout" class="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-slate-800/50 hover:bg-rose-950/30 text-slate-400 hover:text-rose-400 transition-colors border border-slate-800 text-xs font-black uppercase tracking-wider text-center">
+            <span>Sign Out Terminal</span>
+        </a>
+    </div>
+</aside>

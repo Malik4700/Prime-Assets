@@ -1,0 +1,124 @@
+<div id="topupGatewayModal" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 hidden flex-col items-center justify-center p-4">
+    <div class="w-full max-w-sm premium-bg-blend border border-white/20 rounded-[32px] p-6 shadow-2xl space-y-5 relative">
+        <button onclick="toggleTopupModal(false)" class="absolute top-4 right-5 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+        
+        <div>
+            <h4 class="text-xs font-black uppercase tracking-wider text-white">Deposit Liquid Capital</h4>
+            <p class="text-[10px] text-slate-400 mt-0.5">Supply liquidity tokens directly to your verified active console pipeline nodes.</p>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Select Active Network Protocol</label>
+                <select id="userDepositNetworkSelector" onchange="synchronizeActiveWalletDisplayString()" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500/40">
+                    <option value="TRC20">TRON Network (TRC20)</option>
+                    <option value="BEP20">Binance Smart Chain (BEP20)</option>
+                    <option value="ERC20">Ethereum Network (ERC20)</option>
+                    <option value="BTC">Bitcoin Network (BTC)</option>
+                    <option value="SOL">Solana Network (SOL)</option>
+                </select>
+            </div>
+
+            <div class="bg-black/40 border border-white/10 p-4 rounded-2xl text-center space-y-1">
+                <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Gateway Remittance Target</p>
+                <p id="topupWalletString" class="text-xs font-mono font-bold tracking-tight text-white select-all break-all bg-black/50 p-2.5 rounded-xl border border-white/5 mt-1.5 cursor-pointer" onclick="copyTopupWalletToClipboard()">
+                    Loading active secure node coordinates...
+                </p>
+                <p class="text-[8px] text-slate-400 font-medium pt-1">Click the wallet address string above to instantly save to clipboard.</p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400">Submit Verification TxID Hash</label>
+                <input type="text" id="topupTxidInput" placeholder="Paste transaction sequence identifier..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+            </div>
+            
+            <button onclick="commitProofTxidVerificationLogSignature()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all uppercase tracking-wider">
+                Transmit Log Order
+            </button>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-800/60 w-full">
+    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 text-center">Your Deposit Logs History</h4>
+    <div id="userDepositHistoryContainer" class="max-h-32 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-left">
+        <div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>
+    </div>
+</div>
+    </div>
+</div>
+
+<script>
+    // Global variable tracking all structural wallet arrays assigned by workspace controllers
+    let userAssignedGatewayList = [];
+
+    // Toggles visibility of the top-up module frame
+    function toggleTopupModal(shouldDisplay) {
+        const modal = document.getElementById('topupGatewayModal');
+        if (shouldDisplay) {
+            modal.classList.replace('hidden', 'flex');
+            fetchUserWorkspaceWallets();
+        } else {
+            modal.classList.replace('flex', 'hidden');
+        }
+    }
+
+    // Fetches live settings endpoints matching the active administrator's workspace
+    async function fetchUserWorkspaceWallets() {
+        const walletText = document.getElementById('topupWalletString');
+        try {
+            // Note: We will define this endpoint path on our user router mapping layer next
+            const response = await fetch('/admin/user-sync-data');
+            if (!response.ok) throw new Error("Gateway mapping node response invalid.");
+            
+            const syncData = await response.json();
+            userAssignedGatewayList = syncData.gateways || [];
+            synchronizeActiveWalletDisplayString();
+        } catch (err) {
+            console.error("Failed to load gateway accounts coordinates:", err);
+            walletText.innerText = "Error tracking target terminal configurations.";
+        }
+    }
+
+    // Displays the address associated with the chosen dropdown choice
+function synchronizeActiveWalletDisplayString() {
+    const activeNetworkSelection = document.getElementById('userDepositNetworkSelector').value;
+    const targetWalletTextElement = document.getElementById('topupWalletString');
+    
+    // Safely verify if gateways were returned
+    if (!userAssignedGatewayList || userAssignedGatewayList.length === 0) {
+        targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
+        targetWalletTextElement.classList.add('text-rose-400');
+        return;
+    }
+
+    // Find configuration item by seeing if the selection string is contained inside the database string
+    const matchedConfig = userAssignedGatewayList.find(item => {
+        if (!item || !item.blockchain) return false;
+        const dbValue = item.blockchain.toString().toUpperCase();
+        const selectedValue = activeNetworkSelection.toUpperCase();
+        return dbValue.includes(selectedValue) || selectedValue.includes(dbValue);
+    });
+
+    if (matchedConfig && matchedConfig.address) {
+        targetWalletTextElement.innerText = matchedConfig.address;
+        targetWalletTextElement.classList.remove('text-rose-400');
+    } else {
+        targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
+        targetWalletTextElement.classList.add('text-rose-400');
+    }
+}
+
+    // Saves destination parameters instantly to current client workspace clipboard
+    function copyTopupWalletToClipboard() {
+        const addressTextString = document.getElementById('topupWalletString').innerText;
+        if (addressTextString.startsWith("No active") || addressTextString.startsWith("Loading")) return;
+        
+        navigator.clipboard.writeText(addressTextString)
+            .then(() => {
+                if (typeof triggerAppAlert === 'function') {
+                    triggerAppAlert('Memory Cache Buffered', 'Wallet address copied to clipboard text index.', '📋');
+                } else {
+                    alert('Copied to clipboard successfully.');
+                }
+            })
+            .catch(err => console.error('Could not run system copy operations:', err));
+    }
+</script>

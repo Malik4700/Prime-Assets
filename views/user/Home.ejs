@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Console | PRIME ASSETS HOLDINGS 4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(4, 23, 19, 0.35), rgba(2, 15, 12, 0.40)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .premium-bg-blend {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.80), rgba(4, 30, 22, 0.85)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .premium-glass {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+        .text-glow {
+            text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.5); border-radius: 99px; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col font-sans antialiased pb-24 select-none relative overflow-x-hidden custom-scroll">
+
+    <div id="blockadeOverlay" class="<%= (typeof user !== 'undefined' && user && user.isBlocked) ? 'flex' : 'hidden' %> fixed inset-0 bg-black/95 backdrop-blur-2xl z-50 flex-col items-center justify-center text-center p-6">
+        <div class="w-20 h-20 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-2xl animate-pulse">⚠️</div>
+        <h1 class="text-white font-black tracking-tight text-xl uppercase mb-3">System Access Suspended</h1>
+        <p class="text-slate-400 text-xs max-w-sm leading-relaxed mb-6">Your access parameters have been temporarily restricted by security operations. Please contact administrator.</p>
+        <button onclick="window.location.href='/auth/logout'" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-xl transition-all shadow-lg">Disconnect Session</button>
+    </div>
+
+    <div id="customAlert" class="fixed top-6 inset-x-4 max-w-md mx-auto premium-glass border-emerald-500/40 rounded-2xl p-4 shadow-2xl z-50 transform translate-y-[-160%] transition-transform duration-500 flex items-start space-x-3 inner-glow">
+        <div class="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 text-lg" id="alertIcon">✨</div>
+        <div class="flex-grow">
+            <h4 class="text-xs font-black uppercase tracking-wider text-white" id="alertTitle">System Message</h4>
+            <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed" id="alertMessage">Action logged successfully.</p>
+        </div>
+        <button onclick="dismissAlert()" class="text-slate-400 hover:text-white text-base font-bold px-1">&times;</button>
+    </div>
+
+    <div id="confirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+        <div class="w-full max-w-xs premium-bg-blend border border-white/20 rounded-3xl p-6 text-center shadow-2xl inner-glow">
+            <span class="text-3xl">🛡️</span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-3">Confirm Execution</h3>
+            <p class="text-slate-300 text-[11px] mt-2 mb-5" id="confirmModalText">Are you sure you wish to authorize this parameter cycle?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeConfirmModal(false)" class="bg-white/10 hover:bg-white/20 border border-white/10 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all">Cancel</button>
+                <button onclick="closeConfirmModal(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 rounded-xl transition-all">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="w-full premium-glass border-b border-white/10 sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-2.5">
+            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-950/40">PAH</div>
+            <div>
+                <span class="block text-xs font-black tracking-widest text-white uppercase leading-none">PRIME ASSETS HOLDINGS 4.0</span>
+                <span class="text-[8px] text-emerald-400 font-bold uppercase tracking-widest">secure 🔒</span>
+            </div>
+        </div>
+        <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full font-black uppercase tracking-widest animate-pulse">Account Protection active</span>
+    </header>
+
+    <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-5">
+        
+        <div class="premium-bg-blend rounded-[32px] p-6 shadow-2xl border border-emerald-500/30 inner-glow relative overflow-hidden">
+            <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Total Available Asset</p>
+                    <select id="currencySelector" onchange="updateCurrencyDisplay()" class="bg-black/60 text-white border border-white/20 rounded-xl px-2 py-0.5 text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="USD" class="text-slate-900" selected>USD ($)</option>
+                        <option value="PHP" class="text-slate-900">PHP (₱)</option>
+                        <option value="INR" class="text-slate-900">INR (₹)</option>
+                        <option value="PKR" class="text-slate-900">PKR (₨)</option>
+                        <option value="AED" class="text-slate-900">AED (د.إ)</option>
+                    </select>
+                </div>
+
+                <div id="accountFrozenBanner" class="<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'block' : 'hidden' %> bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
+                    🚨 Frozen Account Access Suspended
+                </div>
+                
+                <% if (typeof user !== 'undefined' && user && (user.isPlanPaused === true || user.isPlanPaused === 'true')) { %>
+                    <div class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
+                        ⏸️ Distribution Engine Paused by Authority
+                    </div>
+                    <script>window.isEnginePausedByAdmin = true;</script>
+                <% } else { %>
+                    <script>window.isEnginePausedByAdmin = false;</script>
+                <% } %>
+
+                <h2 id="balanceDisplay" class="text-4xl font-black tracking-tight mb-5 text-white text-glow font-mono">
+                    $<%= (typeof user !== 'undefined' && user && user.balance) ? parseFloat(user.balance).toFixed(2) : '0.00' %> USD
+                </h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" id="mainTopupTriggerBtn" onclick="handleTopupClickAction()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all uppercase tracking-wider cursor-pointer relative z-30 block w-full">Topup 💲</button>
+                    <button type="button" id="mainWithdrawTriggerBtn" onclick="switchMainConsoleTab('withdraw')" class="bg-white/10 text-white font-black text-xs py-3 rounded-2xl border border-white/20 transition-all uppercase tracking-wider cursor-pointer relative z-30 block w-full">Withdraw 💱</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminBroadcastNoticeBanner" class="<%= (typeof user !== 'undefined' && user && user.showWithdrawNotice) ? 'block' : 'hidden' %> premium-glass border-amber-500/30 p-4 rounded-2xl shadow-xl border relative animate-scaleIn">
+            <div class="flex items-start space-x-2.5">
+                <span class="text-base">📢</span>
+                <div class="flex-grow">
+                    <h5 class="text-[11px] font-black uppercase tracking-wider text-amber-400">System Notification</h5>
+                    <p class="text-[11px] text-slate-200 mt-0.5 leading-normal font-medium">Refer 1 friend to get referral bonus and more benefits on withdraw process</p>
+                    <a href="/user/profile" class="inline-block text-[9px] font-black uppercase tracking-wider text-emerald-400 hover:underline mt-2">Read User Manual for more information &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabCoreContainer" class="space-y-5 block">
+            <div id="dynamicPlanContainer" class="space-y-5">
+                <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg animate-pulse">
+                    <span class="text-2xl opacity-40">📊</span>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">Connecting Realtime Database ...</h4>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabWithdrawContainer" class="space-y-5 hidden">
+            <div class="premium-glass rounded-[28px] p-5 space-y-4 shadow-xl">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-white">Secure Remittance Terminal</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Transfer completed portfolio capital out into decentralized chains.</p>
+                    </div>
+                    <button onclick="switchMainConsoleTab('core')" class="text-[10px] bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-slate-200 font-bold uppercase hover:bg-white/20 transition-all">&larr; Back</button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Select Blockchain Infrastructure Network</label>
+                        <select id="withdrawNetworkSelector" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none">
+                            <option value="TRC20" class="text-slate-900">TRON Network (TRC20)</option>
+                            <option value="BEP20" class="text-slate-900">Binance Smart Chain (BEP20)</option>
+                            <option value="ERC20" class="text-slate-900">Ethereum Network (ERC20)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Destination Wallet String Address</label>
+                        <input type="text" id="withdrawAddressInput" placeholder="Paste precise secure wallet index..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Amount to Remit (USD)</label>
+                        <input type="number" id="withdrawAmountInput" placeholder="0.00" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+                    </div>
+                    <div id="withdrawalActionPlaceholder"></div>
+                </div>
+            </div>
+
+            <div class="premium-glass rounded-[28px] p-5 shadow-xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-white">Remittance Audit Log Ledger</h4>
+                    <span class="text-[8px] bg-white/10 border border-white/10 text-slate-400 px-2 py-0.5 rounded font-mono">Live Matrix</span>
+                </div>
+                <div class="overflow-y-auto custom-scroll max-h-64 space-y-3 pr-1" id="withdrawalHistoryLedgerStream">
+                    <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl bg-black/10">
+                        <p class="text-[11px] font-medium text-slate-400">No archival remittance parameters linked to this instance node.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('Deposit') %>
+
+    <div id="supportGatewayModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+    <div class="w-full max-w-xs premium-bg-blend border border-emerald-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
+        <span class="text-4xl inline-block">✅</span>
+        <h3 class="text-xs font-black uppercase tracking-wider text-white mt-4">Proof Signature Submitted</h3>
+        <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">Your transaction index signature code has been uploaded to the verification layers. The administration team will verify your transfer metrics shortly.</p>
+        <button onclick="document.getElementById('supportGatewayModal').classList.replace('flex', 'hidden')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+            Dismiss Confirmation
+        </button>
+    </div>
+</div>
+
+    <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
+        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
+            <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
+        </a>
+        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+        </a>
+        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
+        const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67 };
+        
+        let isAccountFrozen = "<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'true' : 'false' %>" === 'true';
+        let isWithdrawRestrained = "<%= (typeof user !== 'undefined' && user && user.isWithdrawRestrained) ? 'true' : 'false' %>" === 'true';
+        let currentPlanDaysId = "<%= (typeof user !== 'undefined' && user && user.currentPlan) ? user.currentPlan : 'None' %>";
+        let planExpiresAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planExpiresAt) ? user.planExpiresAt : '' %>";
+        let planStartedAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planActivatedAt) ? user.planActivatedAt : '' %>";
+
+        const METRIC_PLAN_TIER_DICT = {
+            "7": { name: "7 Days Beginner Plan", multiplier: 1.20, duration: 7 },          // 20% Profit
+            "15": { name: "15 Days Standard Plan", multiplier: 1.20, duration: 15 },       // 20% Profit
+            "30": { name: "30 Days Pro Plan", multiplier: 1.25, duration: 30 },            // 25% Profit
+            "30_premium": { name: "30 Days VIP Elite Plan", multiplier: 1.30, duration: 30 }, // 30% Profit
+            "60": { name: "60 Days Royal Wealth Plan", multiplier: 1.40, duration: 60 },    // 40% Profit
+            "60_platinum": { name: "60 Days Platinum Elite Plan", multiplier: 1.50, duration: 60 } // 50% Profit
+        };
+
+        let mockWithdrawalLedgerHistory = [];
+        let confirmationSuccessAction = null;
+
+        window.onload = function() {
+            syncData();
+            updateFrozenBannerVisualState();
+            updateWithdrawActionTriggerButton();
+            
+            setInterval(syncData, 7000);
+            setInterval(runRealtimeYieldTickerEngine, 1000);
+        };
+
+        function handleTopupClickAction() {
+            if (isAccountFrozen) {
+                triggerAppAlert('Access Aborted', 'Your liquidity pipeline tracking node state is entirely frozen.', '🚨');
+                return;
+            }
+            toggleTopupModal(true);
+        }
+
+        function toggleTopupModal(forceVisibility) {
+            const container = document.getElementById('topupGatewayModal');
+            if (!container) return;
+            if (forceVisibility) {
+                container.classList.replace('hidden', 'flex');
+                queryActiveGatewaysMappingGrid();
+            } else {
+                container.classList.replace('flex', 'hidden');
+            }
+        }
+
+        function queryActiveGatewaysMappingGrid() {
+    const rowStream = document.getElementById('depositWalletsRenderStream');
+    if (!rowStream) return;
+    rowStream.innerHTML = `<div class="text-center py-4 text-xs font-bold text-slate-400 animate-pulse">Mapping network gateways...</div>`;
+            
+            fetch('/admin/api/get-deposit-gateways')
+                .then(res => res.json())
+                .then(arr => {
+                    if (!arr || arr.length === 0) {
+                        rowStream.innerHTML = `
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-4 text-center">
+                                <p class="text-[10px] text-slate-400 font-medium">No assigned network endpoints configured on workspace by operator.</p>
+                            </div>`;
+                        return;
+                    }
+                    let html = '';
+                    arr.forEach(wallet => {
+                        html += `
+                            <div class="bg-black/50 border border-white/10 rounded-xl p-3 space-y-2 text-left relative overflow-hidden group">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[9px] bg-emerald-500/20 text-emerald-400 font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">${wallet.blockchain}</span>
+                                    <button onclick="copyWalletStringIndexValue(this, '${wallet.address}')" class="text-[9px] font-black text-slate-400 hover:text-white uppercase tracking-widest border border-white/10 px-2 py-1 rounded transition-all bg-white/5">Copy Code</button>
+                                </div>
+                                <p class="text-[10px] font-mono font-medium text-slate-300 break-all select-all pr-2">${wallet.address}</p>
+                            </div>`;
+                    });
+                    rowStream.innerHTML = html;
+                    
+                    if (window.userAssignedGatewayList) {
+                        window.userAssignedGatewayList = arr;
+                        if (typeof synchronizeActiveWalletDisplayString === 'function') {
+                            synchronizeActiveWalletDisplayString();
+                        }
+                    }
+                })
+                .catch(() => {
+                    rowStream.innerHTML = `<div class="text-center py-4 text-xs font-bold text-rose-400">Failed to map gateway coordinates.</div>`;
+                });
+        }
+
+        function copyWalletStringIndexValue(btnNode, hash) {
+            navigator.clipboard.writeText(hash).then(() => {
+                const legacyText = btnNode.innerText;
+                btnNode.innerText = "COPIED";
+                btnNode.classList.replace('text-slate-400', 'text-emerald-400');
+                setTimeout(() => {
+                    btnNode.innerText = legacyText;
+                    btnNode.classList.replace('text-emerald-400', 'text-slate-400');
+                }, 2000);
+            });
+        }
+
+        function commitProofTxidVerificationLogSignature() {
+    const txidHash = document.getElementById('topupTxidInput').value;
+    if (!txidHash || txidHash.trim() === '') {
+        triggerAppAlert('Parameter Missing', 'Please paste the accurate transaction TXID verification signature.', '⚠️');
+        return;
+    }
+
+    fetch('/admin/report-deposit-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            blockchain: document.getElementById('userDepositNetworkSelector').value,
+            txid: txidHash.trim()
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            triggerAppAlert('Success', 'Deposit log successfully transmitted to verification node layers!', '✅');
+            document.getElementById('topupTxidInput').value = '';
+            
+            // Close the topup modal cleanly if the function exists
+            if (typeof toggleTopupModal === 'function') {
+                toggleTopupModal(false);
+            }
+            
+            // Force a data sync refresh instantly so the new item shows up in the user's log grid
+            if (typeof syncData === 'function') {
+                syncData();
+            }
+        } else {
+            triggerAppAlert('Verification Rejected', data.msg || 'Proof failed verification checks.', '❌');
+        }
+    })
+    .catch((err) => {
+        console.error("Submission failed:", err);
+        triggerAppAlert('Network Drop', 'Handshake error dropping proof packet configuration.', '❌');
+    });
+}
+function syncData() {
+            fetch('/admin/user-sync-data', { headers: { 'Accept': 'application/json' } })
+                .then(res => res.json())
+                .then(payload => {
+                    if (payload && payload.gateways) {
+                       userAssignedGatewayList = payload.gateways;
+                       if (typeof synchronizeActiveWalletDisplayString === 'function') {
+                           synchronizeActiveWalletDisplayString();
+                       }
+                    }
+
+                    // --- NEW DEPOSIT LOGS RENDERING BLOCK ---
+                    if (payload && payload.user && payload.user.deposits) {
+                        const historyContainer = document.getElementById('userDepositHistoryContainer');
+                        if (historyContainer) {
+                            if (payload.user.deposits.length === 0) {
+                                historyContainer.innerHTML = `<div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>`;
+                            } else {
+                                historyContainer.innerHTML = payload.user.deposits.map(item => {
+                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20"; // pending
+                                    if (item.status === 'verified') badgeStyle = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+                                    if (item.status === 'rejected') badgeStyle = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+
+                                    const displayTxid = item.txid && item.txid.length > 12 
+                                        ? `${item.txid.substring(0, 6)}...${item.txid.substring(item.txid.length - 6)}` 
+                                        : (item.txid || 'N/A');
+
+                                    return `
+                                        <div class="flex items-center justify-between border border-slate-800/50 bg-slate-900/40 p-2.5 rounded-xl text-[11px] font-mono mb-2">
+                                            <div class="flex flex-col gap-0.5">
+                                                <span class="text-slate-200 font-bold tracking-tight">${item.blockchain || 'Blockchain Network'}</span>
+                                                <span class="text-slate-500 text-[9px] select-all">${displayTxid}</span>
+                                            </div>
+                                            <span class="px-2 py-0.5 border rounded-md text-[9px] font-black uppercase tracking-wider ${badgeStyle}">
+                                                ${item.status || 'pending'}
+                                            </span>
+                                        </div>
+                                    `;
+                                }).join('');
+                            }
+                        }
+                    }
+                    // ----------------------------------------
+
+                    if (payload && payload.success && payload.user) {
+                        if (payload.user.isBlocked) {
+                            document.getElementById('blockadeOverlay').classList.replace('hidden', 'flex');
+                            return;
+                        }
+                        baseAssetBalanceUSD = parseFloat(payload.user.balance) || 0;
+                        isAccountFrozen = !!payload.user.isFrozen;
+                        isWithdrawRestrained = !!payload.user.isWithdrawRestrained;
+                        currentPlanDaysId = payload.user.currentPlan || 'None';
+                        planExpiresAtTimestamp = payload.user.planExpiresAt || '';
+                        planStartedAtTimestamp = payload.user.planActivatedAt || '';
+
+                        updateCurrencyDisplay();
+                        updateFrozenBannerVisualState();
+                        updateWithdrawActionTriggerButton();
+
+                        const broadcastBanner = document.getElementById('adminBroadcastNoticeBanner');
+                        if (broadcastBanner) {
+                            if (payload.user.showWithdrawNotice) {
+                                broadcastBanner.classList.replace('hidden', 'block');
+                            } else {
+                                broadcastBanner.classList.replace('block', 'hidden');
+                            }
+                        }
+
+                        if (payload.user.withdrawals) {
+                            mockWithdrawalLedgerHistory = payload.user.withdrawals;
+                            renderWithdrawalLedgerStream();
+                        }
+                    }
+                })
+                .catch((err) => { console.error("Sync telemetry failure:", err); });
+        }
+
+        function runRealtimeYieldTickerEngine() {
+            if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
+                        <span class="text-2xl opacity-40">📊</span>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
+                    </div>`;
+                return;
+            }
+            if (window.isEnginePausedByAdmin) {
+                const activePlanMeta = METRIC_PLAN_TIER_DICT[currentPlanDaysId];
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
+                        <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
+                        <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                            <div>
+                                <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanMeta.name}</h4>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
+                    </div>`;
+                return;
+            }
+
+            const activePlanMeta = METRIC_PLAN_TIER_DICT[currentPlanDaysId];
+            const nowTimestamp = new Date().getTime();
+            const startTimestamp = new Date(planStartedAtTimestamp).getTime();
+            const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
+
+            const totalPlanRuntimeMs = endTimestamp - startTimestamp;
+            const elapsedPlanRuntimeMs = nowTimestamp - startTimestamp;
+            const totalProfitUSD = baseAssetBalanceUSD * (activePlanMeta.multiplier - 1);
+
+            let visualAccruedIncrementalValueUSD = 0;
+            if (elapsedPlanRuntimeMs > 0 && totalPlanRuntimeMs > 0) {
+                visualAccruedIncrementalValueUSD = (elapsedPlanRuntimeMs / totalPlanRuntimeMs) * totalProfitUSD;
+                if (visualAccruedIncrementalValueUSD > totalProfitUSD) visualAccruedIncrementalValueUSD = totalProfitUSD;
+            }
+
+            let dynamicTotalStreamingDisplayUSD = baseAssetBalanceUSD + visualAccruedIncrementalValueUSD;
+            const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
+
+            const daysRemaining = Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24));
+            const hoursRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutesRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60));
+            const secondsRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000);
+
+            const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
+            const computedDynamicExchangeBalance = (dynamicTotalStreamingDisplayUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
+
+            document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
+                `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
+                `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
+
+            if (absoluteRemainingDistanceMs <= 0) {
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
+                        <span class="text-xl">🎉</span>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('dynamicPlanContainer').innerHTML = `
+                <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
+                    <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                        <div>
+                            <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanMeta.name}</h4>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
+                            <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+${currentSelectedCurrencyKey === 'USD' ? '$' : ''}${(visualAccruedIncrementalValueUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center font-mono">
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
+                    </div>
+                </div>`;
+        }
+
+        UX_CURRENCY_PREF = localStorage.getItem("userConsoleCurrency") || "USD";
+        document.getElementById('currencySelector').value = UX_CURRENCY_PREF;
+
+        function updateCurrencyDisplay() {
+            const key = document.getElementById('currencySelector').value;
+            localStorage.setItem("userConsoleCurrency", key);
+            const val = (baseAssetBalanceUSD * FX_MATRIX[key]).toFixed(2);
+            document.getElementById('balanceDisplay').innerText = key === 'USD' ? `$${val} USD` : `${val} ${key}`;
+        }
+
+        function updateFrozenBannerVisualState() {
+            const el = document.getElementById('accountFrozenBanner');
+            if (el) {
+                if (isAccountFrozen) { el.classList.replace('hidden', 'block'); } 
+                else { el.classList.replace('block', 'hidden'); }
+            }
+        }
+
+        function updateWithdrawActionTriggerButton() {
+            const targetPlaceholder = document.getElementById('withdrawalActionPlaceholder');
+            if (!targetPlaceholder) return;
+            if (isWithdrawRestrained) {
+                targetPlaceholder.innerHTML = `
+                    <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold rounded-xl p-3 text-center uppercase tracking-wider">
+                        🔒Due to heavy taffic on this account, withdraw is closed, refer 1 person to get referral bonus and to unlock the withdraw process instantly.
+                    </div>`;
+            } else {
+                targetPlaceholder.innerHTML = `
+                    <button onclick="commitSecureRemittanceOutwardPayload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+                        Execute Remittance Payload
+                    </button>`;
+            }
+        }
+
+        function switchMainConsoleTab(targetTab) {
+            const core = document.getElementById('tabCoreContainer');
+            const withdraw = document.getElementById('tabWithdrawContainer');
+            if (targetTab === 'withdraw') {
+                core.classList.replace('block', 'hidden');
+                withdraw.classList.replace('hidden', 'block');
+            } else {
+                withdraw.classList.replace('block', 'hidden');
+                core.classList.replace('hidden', 'block');
+            }
+        }
+
+        function commitSecureRemittanceOutwardPayload() {
+            const net = document.getElementById('withdrawNetworkSelector').value;
+            const addr = document.getElementById('withdrawAddressInput').value;
+            const amt = parseFloat(document.getElementById('withdrawAmountInput').value);
+
+            if (!addr || addr.trim() === '' || isNaN(amt) || amt <= 0) {
+                triggerAppAlert('Invalid Variables', 'Please enter a valid wallet address and amount to process.', '⚠️');
+                return;
+            }
+            if (amt > baseAssetBalanceUSD) {
+                triggerAppAlert('Liquidity Fault', 'Requested balance exceeds asset portfolio depth.', '❌');
+                return;
+            }
+
+            openConfirmModal(`Confirm transaction of $${amt.toFixed(2)} USD to ${net} network address?`, () => {
+                fetch('/user/request-withdraw', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ blockchain: net, address: addr, amount: amt })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        triggerAppAlert('Request Sent', 'Your withdrawal has been registered under pending status.', '✨');
+                        document.getElementById('withdrawAddressInput').value = '';
+                        document.getElementById('withdrawAmountInput').value = '';
+                        syncData();
+                    } else {
+                        triggerAppAlert('Request Denied', data.msg || 'Transaction rejected by system.', '❌');
+                    }
+                })
+                .catch(() => { triggerAppAlert('Network Failure', 'Failed to dispatch remittance payload requests.', '❌'); });
+            });
+        }
+
+        function renderWithdrawalLedgerStream() {
+            const container = document.getElementById('withdrawalHistoryLedgerStream');
+            if (!container) return;
+            if (!mockWithdrawalLedgerHistory || mockWithdrawalLedgerHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl bg-black/10">
+                        <p class="text-[11px] font-medium text-slate-400">No archival remittance parameters linked to this instance node.</p>
+                    </div>`;
+                return;
+            }
+            let html = '';
+            mockWithdrawalLedgerHistory.forEach(item => {
+                let badgeColor = 'border-amber-500/30 text-amber-400 bg-amber-500/10';
+                if (item.status === 'approved' || item.status === 'completed') badgeColor = 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10';
+                if (item.status === 'rejected' || item.status === 'failed') badgeColor = 'border-rose-500/30 text-rose-400 bg-rose-500/10';
+
+                html += `
+                    <div class="bg-black/40 border border-white/5 rounded-2xl p-3 flex justify-between items-center">
+                        <div>
+                            <span class="text-[8px] font-mono text-slate-500 block uppercase tracking-widest">${new Date(item.createdAt).toLocaleString()}</span>
+                            <span class="text-[11px] font-mono font-black text-white">$${parseFloat(item.amount).toFixed(2)} <span class="text-[9px] text-slate-400 font-sans">${item.method || 'Blockchain Network'}</span></span>
+                            <p class="text-[9px] text-slate-400 font-mono break-all max-w-[200px] mt-0.5">${item.address}</p>
+                        </div>
+                        <span class="text-[8px] uppercase font-black tracking-widest px-2 py-0.5 rounded border ${badgeColor}">${item.status}</span>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function triggerAppAlert(title, message, icon = '✨') {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('alertIcon').innerText = icon;
+            const box = document.getElementById('customAlert');
+            box.classList.replace('translate-y-[-160%]', 'translate-y-0');
+            setTimeout(dismissAlert, 4000);
+        }
+
+        function dismissAlert() {
+            const box = document.getElementById('customAlert');
+            if (box) box.classList.replace('translate-y-0', 'translate-y-[-160%]');
+        }
+
+        function openConfirmModal(text, successCallback) {
+            document.getElementById('confirmModalText').innerText = text;
+            confirmationSuccessAction = successCallback;
+            document.getElementById('confirmModal').classList.replace('hidden', 'flex');
+        }
+
+        function closeConfirmModal(isConfirmed) {
+            document.getElementById('confirmModal').classList.replace('flex', 'hidden');
+            if (isConfirmed && confirmationSuccessAction) confirmationSuccessAction();
+            confirmationSuccessAction = null;
+        }
+    </script>
+</body>
+</html>

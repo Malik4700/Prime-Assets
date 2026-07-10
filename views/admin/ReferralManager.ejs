@@ -1,0 +1,88 @@
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-sm font-medium text-rose-800">
+        ⚠️ <%= error %>
+    </div>
+<% } %>
+<% if (typeof success !== 'undefined' && success) { %>
+    <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm font-medium text-emerald-800">
+        ✨ <%= success %>
+    </div>
+<% } %>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    
+    <div class="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 class="font-black text-base text-slate-900 uppercase tracking-wide mb-1">Generate Token</h3>
+        <p class="text-xs text-slate-400 font-medium mb-4">Create single-use alphanumeric referral passcodes assigned to users.</p>
+        
+        <form id="referralGenForm" class="space-y-4" onsubmit="handleReferralGeneration(event)">
+    <div>
+        <label class="block text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1.5">Referrer Username</label>
+        <input 
+            type="text" 
+            id="targetUsername"
+            name="targetUsername" 
+            required 
+            placeholder="Enter existing user name..." 
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 text-slate-800 placeholder-slate-400 transition"
+        >
+    </div>
+    
+    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition rounded-xl font-bold uppercase text-xs tracking-widest text-white shadow-sm">
+        Create Referral Code
+    </button>
+</form>
+    </div>
+
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 class="font-black text-base text-slate-900 uppercase tracking-wide mb-1">Active Referral Logs</h3>
+        <p class="text-xs text-slate-400 font-medium mb-4">Monitor used registration codes and relational mapping.</p>
+
+        <% if (typeof codes !== 'undefined' && codes && codes.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-3 font-semibold">Generated Code</th>
+                            <th class="pb-3 font-semibold">Referrer (User)</th>
+                            <th class="pb-3 font-semibold">Status Flags</th>
+                            <th class="pb-3 font-semibold">Referred Friend</th>
+                            <th class="pb-3 font-semibold text-right">Actions Matrix</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        <% codes.forEach(function(item) { %>
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="py-3.5 font-mono font-bold text-emerald-600 select-all"><%= item.code %></td>
+                                <td class="py-3.5 font-medium text-slate-900"><%= item.referrerUsername %></td>
+                                <td class="py-3.5">
+                                    <% if (item.isUsed) { %>
+                                        <span class="text-[9px] font-black uppercase bg-slate-100 text-slate-400 border border-slate-200 px-2 py-0.5 rounded-md">Used</span>
+                                    <% } else { %>
+                                        <span class="text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md">Active</span>
+                                    <% } %>
+                                </td>
+                                <td class="py-3.5 font-mono text-slate-500">
+                                    <%= item.referredUser ? item.referredUser : '---' %>
+                                </td>
+                                <td class="py-3.5 text-right">
+                                    <% 
+                                        const waText = encodeURIComponent(`Hello! Here is your exclusive registration referral code to sign up: ${item.code}`);
+                                        const waUrl = `https://api.whatsapp.com/send?text=${waText}`;
+                                    %>
+                                    <a href="<%= waUrl %>" target="_blank" class="inline-flex items-center text-[10px] uppercase font-black tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl hover:bg-emerald-600 hover:text-white transition">
+                                        WhatsApp Share
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="flex flex-col items-center justify-center h-48 text-slate-400">
+                <p class="text-xs uppercase font-bold tracking-wider">No active referral codes allocated in current scope.</p>
+            </div>
+        <% } %>
+    </div>
+</div>

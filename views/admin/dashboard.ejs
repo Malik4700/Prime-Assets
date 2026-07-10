@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Operations Center | PRIME ASSETS HOLDINGS 4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Hide all admin views by default and make them take up 0 space */
+        .admin-view { 
+            display: none !important; 
+        }
+        /* Reveal the view cleanly when marked active */
+        .admin-view.active { 
+            display: block !important; 
+        }
+        
+        .chat-msg-menu { display: none; }
+        .chat-msg-container:hover .chat-msg-menu { display: flex; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 min-h-screen flex font-sans antialiased select-none">
+
+    <%- include('partials/sidebar') %>
+
+    <main class="flex-grow pl-64 min-h-screen flex flex-col">
+        
+        <%- include('partials/header') %>
+
+        <div class="p-8 max-w-6xl w-full mx-auto">
+            
+            <section id="view-home" class="admin-view space-y-6">
+                <%- include('home') %>
+            </section>
+
+            <section id="view-users" class="admin-view space-y-6">
+                <%- include('users') %>
+            </section>
+
+            <section id="view-withdrawals" class="admin-view space-y-6">
+                <%- include('withdrawals', { pendingWithdrawals: pendingWithdrawals }) %>
+            </section>
+            
+            <section id="view-plansManagement" class="admin-view space-y-6">
+                <%- include('plansManagement') %>
+            </section>
+            
+            <section id="view-whatsappConfig" class="admin-view space-y-6">
+                <%- include('whatsappConfig') %>
+            </section>
+            
+            <section id="view-referrals" class="admin-view space-y-6">
+                <%- include('ReferralManager') %>
+            </section>
+           
+        </div>
+    </main>
+
+    <%- include('partials/modals') %>
+
+    <script>
+        function switchAdminView(viewName) {
+            // 1. Hide all views and clear active states cleanly
+            document.querySelectorAll('.admin-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+
+            // 2. Safely find and activate the target view section using its element ID
+            const targetView = document.getElementById(`view-${viewName}`);
+            if (targetView) targetView.classList.add('active');
+
+            // 3. Keep sidebar focus buttons accurately synchronized 
+            document.querySelectorAll('.sidebar-link').forEach(btn => {
+                if (btn.getAttribute('data-view') === viewName) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // 4. Update the layout title bar headers dynamically
+            const titleMap = {
+                'home': 'Overview Core',
+                'users': 'User Account Directory',
+                'withdrawals': 'Remittance Orders Processing',
+                'plansManagement': 'Plans Management Desk',
+                'whatsappConfig': 'WhatsApp Link Matrix Configuration',
+                'referrals': 'Referral Network Matrix'
+            };
+            const titleEl = document.getElementById('viewTitle');
+            if (titleEl && titleMap[viewName]) {
+                titleEl.innerText = titleMap[viewName];
+            }
+
+            // 5. Fire plan management stream loops if applicable
+            if (viewName === 'plansManagement' && typeof initPlansManagementDesk === 'function') {
+                initPlansManagementDesk();
+            }
+
+            // 6. Save active view state for absolute persistence on reloads
+            localStorage.setItem('activeAdminTab', viewName);
+        }
+
+        // Restore active tab state smoothly on page initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedTab = localStorage.getItem('activeAdminTab') || 'home';
+            switchAdminView(savedTab);
+        });
+
+        // Global Alert Messaging Window Notification Handlers
+        function showNotification(title, message, status = 'success') {
+            const modal = document.getElementById('siteNotifyAlertModal');
+            const statusIcon = document.getElementById('alertStatusIcon');
+            const headerText = document.getElementById('alertHeaderText');
+            const bodyText = document.getElementById('alertBodyText');
+            if (!modal || !statusIcon || !headerText || !bodyText) return;
+
+            headerText.innerText = title.toUpperCase();
+            bodyText.innerText = message;
+            if (status === 'error') {
+                statusIcon.innerText = '❌';
+                statusIcon.className = "text-3xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center w-12 h-12 rounded-full";
+                headerText.className = "font-black text-sm uppercase tracking-wide text-rose-600";
+            } else {
+                statusIcon.innerText = '✨';
+                statusIcon.className = "text-3xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center w-12 h-12 rounded-full";
+                headerText.className = "font-black text-sm uppercase tracking-wide text-emerald-600";
+            }
+
+            modal.classList.replace('hidden', 'flex');
+        }
+
+        function closeNotifyAlert() {
+            const modal = document.getElementById('siteNotifyAlertModal');
+            if (modal) modal.classList.replace('flex', 'hidden');
+        }
+
+        // Configuration adjustment panel overrides
+        function openEditModal(userId, username, balance, promo, role) {
+            document.getElementById('modalTargetUserId').value = userId;
+            document.getElementById('modalTargetUsername').innerText = username;
+            document.getElementById('inputBalance').value = balance;
+            document.getElementById('inputPromo').value = promo;
+            document.getElementById('selectRole').value = role;
+            
+            document.getElementById('editUserModal').classList.replace('hidden', 'flex');
+        }
+
+        if (typeof closeEditModal === 'undefined') {
+            window.closeEditModal = function() {
+                document.getElementById('editUserModal').classList.replace('flex', 'hidden');
+            };
+        }
+
+        async function submitUserEdit() {
+            const userId = document.getElementById('modalTargetUserId').value;
+            const balance = document.getElementById('inputBalance').value;
+            const promo = document.getElementById('inputPromo').value;
+            const role = document.getElementById('selectRole').value;
+            try {
+                const res = await fetch('/admin/update-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, balance, promo, role })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Success', 'Profile configurations committed successfully.');
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    showNotification('Error', data.msg || 'Configuration adjustment failed.', 'error');
+                }
+            } catch (err) {
+                showNotification('Error', 'Handshake error across endpoint network layer.', 'error');
+            }
+            closeEditModal();
+        }
+
+        function openPasswordModal(userId, username) {
+            document.getElementById('pwdTargetUserId').value = userId;
+            document.getElementById('pwdTargetUsername').innerText = username;
+            document.getElementById('inputNewPassword').value = '';
+            document.getElementById('changePasswordModal').classList.replace('hidden', 'flex');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('changePasswordModal').classList.replace('flex', 'hidden');
+        }
+
+        async function submitPasswordChange() {
+            const userId = document.getElementById('pwdTargetUserId').value;
+            const newPassword = document.getElementById('inputNewPassword').value;
+
+            if(!newPassword.trim()) {
+                alert('Password cannot be empty.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, newPassword })
+                });
+                if (response.ok) {
+                    showNotification('Updated', 'User security credentials reset.');
+                } else {
+                    showNotification('Error', 'Unable to commit credential change.', 'error');
+                }
+            } catch (err) {
+                showNotification('Error', 'Network channel fault detected.', 'error');
+            }
+            closePasswordModal();
+        }
+
+        async function toggleBlockUser(userId, btnElement) {
+            try {
+                const response = await fetch('/admin/toggle-block', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId })
+                });
+                if (response.ok) {
+                    showNotification('Success', 'Status updated.');
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            } catch (e) {
+                showNotification('Error', 'Node request failed.', 'error');
+            }
+        }
+
+        async function deleteUserSystem(userId) {
+            try {
+                const response = await fetch(`/admin/delete-user/${userId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showNotification('Purged', 'Identity dropped from database entries.', 'error');
+                    setTimeout(() => window.location.reload(), 1200);
+                }
+            } catch (e) {
+                showNotification('Error', 'Failed to issue purge command.', 'error');
+            }
+        }
+
+        async function handleReferralGeneration(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('targetUsername').value;
+            
+            try {
+                const response = await fetch('/admin/referral-manager/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetUsername: usernameInput })
+                });
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification('Success', result.message || 'Referral code created successfully!');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification('Error', result.error || 'Failed to generate code.', 'error');
+                }
+            } catch (err) {
+                showNotification('Error', 'Network error tracking generation framework.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Analytics & Resource Console | PRIME ASSETS HOLDINGS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-text {
+            background-size: 200% auto;
+            animation: gradientFlow 4s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#f2f9f6] text-slate-800 min-h-screen flex flex-col justify-between font-sans relative overflow-x-hidden antialiased select-none">
+
+    <div id="app-splash-preloader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#030f0c] transition-opacity duration-700 ease-in-out">
+        <div class="w-full h-full flex items-center justify-center relative">
+            <video 
+                src="/landing.mp4" 
+                autoplay 
+                muted 
+                playsinline
+                class="w-full h-full object-cover max-w-4xl max-h-[80vh] md:rounded-2xl"
+            ></video>
+        </div>
+    </div>
+
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const preloader = document.getElementById('app-splash-preloader');
+        setTimeout(() => {
+            preloader.classList.add('opacity-0');
+            setTimeout(() => preloader.remove(), 700);
+        }, 7000); 
+    });
+    </script>
+
+    <header class="w-full bg-white/40 backdrop-blur-md border-b border-white/60 sticky top-0 z-50 shadow-[0_2px_10px_rgba(16,185,129,0.02)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-600 to-indigo-600 bg-clip-text text-transparent animate-gradient-text">PRIME ASSETS HOLDINGS</span>
+                <span class="text-[10px] bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"> 4.0</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/auth/login" class="text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-emerald-600 transition-colors duration-200">Login</a>
+                <a href="/auth/signup" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl transition-all duration-300 shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 transform active:scale-95">
+                    Register
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow z-10 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 space-y-12">
+        
+        <section class="bg-white/40 backdrop-blur-3xl border border-white/90 p-8 sm:p-12 rounded-[2.5rem] shadow-[0_30px_70px_rgba(148,163,184,0.12)] max-w-4xl w-full text-center transition-all duration-500 hover:shadow-[0_40px_80px_rgba(16,185,129,0.14)] group">
+            <span class="text-[11px] bg-emerald-500/10 text-emerald-700 px-3 py-1 rounded-full font-black uppercase tracking-widest inline-block mb-4">
+                Standalone work environments
+            </span>
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight mb-4 bg-gradient-to-r from-emerald-600 via-teal-500 to-indigo-600 bg-clip-text text-transparent animate-gradient-text filter drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
+                Global Analytics Engine
+            </h1>
+            <p class="text-slate-500 text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed mb-8">
+                Deploy high-speed asset distribution networks across multiple regions to ensure continuous uptime, monitor your global resource allocations across separate international runtime consoles, and unlock high-throughput data processing to handle complex system tasks inside a fully secure, enterprise-grade workspace.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="/auth/signup" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 px-8 rounded-2xl text-sm transition-all duration-300 shadow-lg shadow-emerald-600/15 hover:shadow-emerald-600/25 transform active:scale-[0.98] tracking-wider uppercase text-center">
+                    Register Premium Account
+                </a>
+                <a href="/auth/login" class="w-full sm:w-auto bg-white/80 border border-slate-200 hover:border-slate-300 text-slate-600 font-bold py-4 px-8 rounded-2xl text-sm transition-all duration-300 text-center tracking-wider uppercase">
+                    Login
+                </a>
+            </div>
+        </section>
+
+        <section id="features" class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold mb-4">01</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-2">Kinetic Dispatching</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Bouncing payload architecture mitigates localized latency, resolving micro-collisions seamlessly on client request steps.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">02</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-2">Multi-Region Pools</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Native integration for international parameter nodes, safely containerizing data matrices by global compliance guidelines.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold mb-4">03</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-2">Referral Clearances</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Restricted validation systems ensure workspace onboarding instances are signed off using unique onboarding keys.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">04</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">SECURE ONBOARDING</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Our automated routing systems ensure your funds are instantly moved into the highest-yielding accounts using secure, real-time verification protocols.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">05</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">GLOBAL ASSET VAULTS</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Easily connect to international markets with built-in compliance that automatically organizes and safeguards your global data.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">06</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">VERIFIED ACCOUNT ACCESS</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Our secure verification systems ensure all new account setups on Prime Assets Holdings are safely authorized using unique keys.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">07</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">COMPLIANT DATA CENTERS</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Our platform natively syncs with global networks to safely store your assets information while automatically adhering to international privacy regulations.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">08</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">INTELLIGENT RE-ROUTING</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">The platform's advanced network architecture minimizes system lag, resolving data traffic jams instantly to give you a seamless user experience.</p>
+            </div>
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold mb-4">09</div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">FAST-TRACK PERFORMANCE</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">Our smart routing network eliminates data friction, ensuring your account synchronization and asset holding requests process smoothly and instantly.</p>
+            </div>
+
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm flex flex-col justify-between space-y-4 text-left">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-widest bg-emerald-500/10 text-emerald-700 uppercase border border-emerald-500/10">
+                            Active Matrix Cert
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">SEC-ID: 882-X</span>
+                    </div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Core Protocol Verification</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                        Systemic ledger streams are secire strings passing real-time structural audits. Global verification layers operate automatically across tracking endpoints.
+                    </p>
+                </div>
+                <div class="border-t border-slate-200/60 pt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                    <span>Validation Stream:</span>
+                    <span class="text-emerald-600 font-bold animate-pulse">● SECURE HANDSHAKE</span>
+                </div>
+            </div>
+
+            <div class="bg-white/30 backdrop-blur-2xl border border-white/80 p-6 rounded-3xl transition-all duration-300 hover:bg-white/50 hover:scale-[1.02] shadow-sm flex flex-col justify-between space-y-4 text-left">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold tracking-widest bg-emerald-500/10 text-emerald-700 uppercase border border-emerald-500/10">
+                            Terminal Sync
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">PORTAL: V4.0</span>
+                    </div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Remote Client Portal Access</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                        Initialize administrative handshake pipelines from authorized remote interfaces. Access configurations dynamically to monitor secure workspace user metrics.
+                    </p>
+                </div>
+                <div>
+                    <button onclick="triggerUplinkAlert()" class="w-full py-2.5 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all duration-300 transform active:scale-[0.98] shadow-md shadow-emerald-600/10">
+                        Connect Remote Uplink
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-emerald-50/40 backdrop-blur-2xl border border-emerald-500/20 p-6 rounded-3xl transition-all duration-300 hover:bg-emerald-50/60 hover:scale-[1.02] shadow-sm">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-900 mb-4 flex items-center gap-2">
+                    <span>Corporate Matrix</span>
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                </h3>
+                
+                <div class="space-y-3 text-xs font-medium font-mono text-slate-700 text-left">
+                    <div class="flex items-center space-x-2.5 bg-white/40 p-2.5 rounded-xl border border-emerald-500/10">
+                        <span class="text-base text-emerald-600">🌐</span>
+                        <div class="truncate">
+                            <span class="block text-[9px] uppercase tracking-wider text-slate-400 font-sans font-bold">Official website</span>
+                            <a href="https://www.dblshah.com" target="_blank" class="hover:text-emerald-600 transition-colors">www.primeassetsholdings.com</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2.5 bg-white/40 p-2.5 rounded-xl border border-emerald-500/10">
+                        <span class="text-base text-emerald-600">✉️</span>
+                        <div class="truncate">
+                            <span class="block text-[9px] uppercase tracking-wider text-slate-400 font-sans font-bold">official email</span>
+                            <a href="mailto:support@dblshah.com" class="hover:text-emerald-600 transition-colors">info.fdmep007@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start space-x-2.5 bg-white/40 p-2.5 rounded-xl border border-emerald-500/10">
+                        <span class="text-base text-emerald-600 mt-0.5">📍</span>
+                        <div>
+                            <span class="block text-[9px] uppercase tracking-wider text-slate-400 font-sans font-bold">HQ Coordinates</span>
+                            <p class="text-slate-600 leading-normal font-sans text-[11px]">Prime Assets Core Infrastructure, Floor 4, Suite 402, Financial District.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="uplink-popup-overlay" class="hidden fixed inset-0 z-[30000] bg-slate-900/30 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="max-w-md w-full bg-white/40 backdrop-blur-3xl border border-white/90 p-8 rounded-[2rem] text-center space-y-6 shadow-2xl transform scale-95 transition-all duration-300" onclick="event.stopPropagation()">
+            <div class="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 mx-auto flex items-center justify-center rounded-2xl text-2xl animate-pulse">
+                📡
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-800">Uplink Encryption Required</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed font-mono">
+                    Mobile remote client configurations are undergoing automated security synchronization. Standard network pathways are restricted until an authenticated session token is registered.
+                </p>
+            </div>
+            <button onclick="closeUplinkAlert()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-mono text-xs font-bold tracking-wider uppercase transition-colors shadow-md shadow-emerald-600/10">
+                Acknowledge Handshake Intercept
+            </button>
+        </div>
+    </div>
+
+    <footer class="w-full text-center py-5 text-[11px] text-slate-400 font-bold tracking-widest border-t border-white/40 z-10 bg-white/10 backdrop-blur-sm">
+        &copy; 2026 PRIME ASSETS HOLDINGS &bull; RESOURCE MANAGEMENT ENGINE &bull; ALL RIGHTS RESERVED
+    </footer>
+
+    <script>
+    function triggerUplinkAlert() {
+        const overlay = document.getElementById('uplink-popup-overlay');
+        overlay.classList.remove('hidden');
+    }
+    function closeUplinkAlert() {
+        const overlay = document.getElementById('uplink-popup-overlay');
+        overlay.classList.add('hidden');
+    }
+    // Dismiss popup overlay dynamically when user triggers background click events
+    document.getElementById('uplink-popup-overlay').addEventListener('click', closeUplinkAlert);
+    </script>
+
+</body>
+</html>

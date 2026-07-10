@@ -1,0 +1,590 @@
+<div class="flex items-center space-x-2 border-b border-slate-200 mb-6 pb-px">
+    <button onclick="toggleFinanceTab('requests-tab-panel', this)" class="finance-tab-btn border-b-2 border-indigo-600 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-indigo-600 focus:outline-none transition-all">
+        Pending Cashout Requests
+    </button>
+    <button onclick="toggleFinanceTab('deposit-proofs-panel', this)" class="finance-tab-btn border-b-2 border-transparent px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 focus:outline-none transition-all">
+        Pending Deposit Proofs
+    </button>
+    <button onclick="toggleFinanceTab('deposit-wallets-panel', this)" class="finance-tab-btn border-b-2 border-transparent px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 focus:outline-none transition-all">
+        Deposit Management
+    </button>
+</div>
+
+<div id="requests-tab-panel" class="finance-panel-view block space-y-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+                <h3 class="font-black text-lg text-slate-900 mb-1">Pending Cashout Requests</h3>
+                <p class="text-xs text-slate-400 font-medium">Authorize or reject processing requests submitted by tenants.</p>
+            </div>
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-1.5 text-right flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span class="text-[10px] font-black uppercase text-indigo-700 tracking-wider">Settlement Ledger Node</span>
+            </div>
+        </div>
+
+        <% if (typeof pendingWithdrawals !== 'undefined' && pendingWithdrawals.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-3 font-semibold">User Profile Identity</th>
+                            <th class="pb-3 font-semibold">Target Network Coordinates</th>
+                            <th class="pb-3 font-semibold">Volume (USD)</th>
+                            <th class="pb-3 font-semibold">Submission Timestamp</th>
+                            <th class="pb-3 text-right font-semibold">Action Control Intercepts</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 font-medium text-slate-700">
+    <% pendingWithdrawals.forEach(item => { %>
+        <tr id="withdrawal-row-<%= item._id %>" class="hover:bg-slate-50/50 transition-colors">
+            <td class="py-3.5">
+                <span class="block font-black uppercase text-slate-900 tracking-tight">
+                    <%= (item.userId && item.userId.username) ? item.userId.username : 'Anonymous Node' %>
+                </span>
+                <span class="text-[10px] text-slate-400 select-all">
+                    <%= (item.userId && item.userId.email) ? item.userId.email : '' %>
+                </span>
+            </td>
+            <td class="py-3.5 font-mono">
+                <span class="inline-block bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-600 mb-0.5">
+                    <%= item.method || item.blockchain || 'Blockchain Network' %>
+                </span>
+                <span class="block text-[11px] text-slate-500 tracking-tight max-w-[200px] truncate select-all" title="<%= item.address %>"><%= item.address %></span>
+            </td>
+            <td class="py-3.5 font-mono text-slate-900 font-bold text-sm">
+                $<%= parseFloat(item.amount || 0).toFixed(2) %>
+            </td>
+            <td class="py-3.5 text-slate-400 text-[11px]">
+                <%= new Date(item.createdAt || Date.now()).toLocaleString() %>
+            </td>
+            <td class="py-3.5 text-right space-x-1 shrink-0">
+                <button onclick="commitSettlementAction('<%= item._id %>', 'reject')" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-wider px-3 py-2 rounded-xl transition-all active:scale-95">Bounce</button>
+                <button onclick="commitSettlementAction('<%= item._id %>', 'approve')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider px-4 py-2 rounded-xl shadow-sm transition-all active:scale-95">Settle Request</button>
+            </td>
+        </tr>
+    <% }) %>
+</tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/40">
+                <span class="text-3xl block">📥</span>
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mt-3">Roster Settled</h4>
+                <p class="text-slate-400 text-[11px] mt-0.5 max-w-xs mx-auto">No pending outbound capital remittances have been registered down pipeline lines.</p>
+            </div>
+        <% } %>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+                <h3 class="font-black text-lg text-slate-900 mb-1">Withdrawal Logs History</h3>
+                <p class="text-xs text-slate-400 font-medium">Historical audit stream of completely processed and cleared payout instances.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <input type="text" id="withdrawalHistorySearchField" onkeyup="filterWithdrawalHistoryLogs()" placeholder="Search target address..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[200px]">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-right flex items-center space-x-2 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider">Archived Payout Ledger</span>
+                </div>
+            </div>
+        </div>
+
+        <% if (typeof withdrawalHistory !== 'undefined' && withdrawalHistory.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table id="withdrawalHistoryLogGridTable" class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-3 font-semibold">User Profile</th>
+                            <th class="pb-3 font-semibold">Blockchain Architecture</th>
+                            <th class="pb-3 font-semibold">Target Network Coordinates</th>
+                            <th class="pb-3 font-semibold">Volume (USD)</th>
+                            <th class="pb-3 font-semibold">Processed Date</th>
+                            <th class="pb-3 text-right font-semibold">Audit State Index</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 font-medium text-slate-700">
+                        <% withdrawalHistory.forEach(item => { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors target-withdrawal-row">
+                                <td class="py-3.5">
+    <span class="block font-black uppercase text-slate-900 tracking-tight">
+        <%= (item.userId && item.userId.username) ? item.userId.username : 'Anonymous Node' %>
+    </span>
+    
+    <span class="text-[10px] text-slate-400 select-all">
+        <%= (item.userId && item.userId.email) ? item.userId.email : '' %>
+    </span>
+</td>
+                                <td class="py-3.5">
+                                    <span class="inline-block bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-600"><%= item.method || 'TRC20' %></span>
+                                </td>
+                                <td class="py-3.5 font-mono text-[11px] text-slate-500 max-w-[200px] truncate select-all coordinate-string-cell" title="<%= item.address %>">
+                                    <%= item.address %>
+                                </td>
+                                <td class="py-3.5 font-mono text-slate-900 font-bold text-sm">
+                                    $<%= parseFloat(item.amount || 0).toFixed(2) %>
+                                </td>
+                                <td class="py-3.5 text-slate-400 text-[11px]">
+                                    <%= new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleString() %>
+                                </td>
+                                <td class="py-3.5 text-right">
+                                    <% if (item.status === 'approved' || item.status === 'verified') { %>
+                                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">Settled & Approved</span>
+                                    <% } else { %>
+                                        <span class="bg-rose-50 text-rose-700 border border-rose-200 font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">Declined / Void</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/40">
+                <span class="text-3xl block">📋</span>
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mt-3">History Empty</h4>
+                <p class="text-slate-400 text-[11px] mt-0.5 max-w-xs mx-auto">No archived withdrawal signatures have been recorded on this administrative segment yet.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<div id="deposit-proofs-panel" class="finance-panel-view hidden space-y-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+                <h3 class="font-black text-lg text-slate-900 mb-1">Pending Deposit Proofs</h3>
+                <p class="text-xs text-slate-400 font-medium">Verify incoming blockchain hash signatures and alter status indexes.</p>
+            </div>
+            <div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-1.5 text-right flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span class="text-[10px] font-black uppercase text-amber-700 tracking-wider">Verification Node</span>
+            </div>
+        </div>
+
+        <% if (typeof pendingDeposits !== 'undefined' && pendingDeposits.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-3 font-semibold">User Profile</th>
+                            <th class="pb-3 font-semibold">Blockchain Architecture</th>
+                            <th class="pb-3 font-semibold">Transaction Reference Hash (TXID)</th>
+                            <th class="pb-3 font-semibold">Log Registration Date</th>
+                            <th class="pb-3 text-right font-semibold">Action Control Intercepts</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 font-medium text-slate-700">
+                        <% pendingDeposits.forEach(item => { %>
+                            <tr id="deposit-row-<%= item._id %>" class="hover:bg-slate-50/50 transition-colors">
+                                <td class="py-3.5">
+                                    <span class="block font-black uppercase text-slate-900 tracking-tight"><%= item.userId && item.userId.username ? item.userId.username : 'Subscriber Account' %></span>
+                                    <span class="text-[10px] text-slate-400 select-all"><%= item.userId && item.userId.email ? item.userId.email : '' %></span>
+                                </td>
+                                <td class="py-3.5 font-mono">
+                                    <span class="inline-block bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-600"><%= item.blockchain || 'Blockchain Network' %></span>
+                                </td>
+                                <td class="py-3.5 font-mono select-all text-slate-600 tracking-tight break-all max-w-xs">
+                                    <%= item.txid %>
+                                </td>
+                                <td class="py-3.5 text-slate-400 text-[11px]">
+                                    <%= new Date(item.createdAt || Date.now()).toLocaleString() %>
+                                </td>
+                                <td class="py-3.5 text-right space-x-1 shrink-0">
+                                    <button onclick="commitDepositVerificationAction('<%= item._id %>', 'reject')" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-wider px-3 py-2 rounded-xl transition-all active:scale-95">Reject</button>
+                                    <button onclick="commitDepositVerificationAction('<%= item._id %>', 'verify')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider px-4 py-2 rounded-xl shadow-sm transition-all active:scale-95">Verify Deposit</button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/40">
+                <span class="text-3xl block">📁</span>
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mt-3">Roster Clear</h4>
+                <p class="text-slate-400 text-[11px] mt-0.5 max-w-xs mx-auto">No pending verification items require administrator oversight currently.</p>
+            </div>
+        <% } %>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+                <h3 class="font-black text-lg text-slate-900 mb-1">Deposit Logs History</h3>
+                <p class="text-xs text-slate-400 font-medium">Historical audit stream of processed incoming user deposit proofs.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <input type="text" id="depositTxidHistorySearchField" onkeyup="filterDepositHistoryLogsByTxid()" placeholder="Search TXID hash..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 min-w-[200px]">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-right flex items-center space-x-2 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider">Archived Vault Ledger</span>
+                </div>
+            </div>
+        </div>
+
+        <% if (typeof depositHistory !== 'undefined' && depositHistory.length > 0) { %>
+            <div class="overflow-x-auto">
+                <table id="depositHistoryLogGridTable" class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-3 font-semibold">User Profile</th>
+                            <th class="pb-3 font-semibold">Blockchain Architecture</th>
+                            <th class="pb-3 font-semibold">Transaction Reference Hash (TXID)</th>
+                            <th class="pb-3 font-semibold">Processed Date</th>
+                            <th class="pb-3 text-right font-semibold">Audit State Index</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 font-medium text-slate-700">
+                        <% depositHistory.forEach(item => { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors target-deposit-row">
+                                <td class="py-3.5">
+                                    <span class="block font-black uppercase text-slate-900 tracking-tight"><%= (item.userId && item.userId.username) ? item.userId.username : 'Subscriber Node' %></span>
+                                    <span class="text-[10px] text-slate-400 select-all"><%= (item.userId && item.userId.email) ? item.userId.email : '' %></span>
+                                </td>
+                                <td class="py-3.5">
+                                    <span class="inline-block bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-600"><%= item.blockchain || 'TRC20' %></span>
+                                </td>
+                                <td class="py-3.5 font-mono text-[11px] text-slate-500 max-w-[220px] truncate select-all hash-string-cell" title="<%= item.txid %>">
+                                    <%= item.txid %>
+                                </td>
+                                <td class="py-3.5 text-slate-400 text-[11px]">
+                                    <%= new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleString() %>
+                                </td>
+                                <td class="py-3.5 text-right">
+                                    <% if (item.status === 'approved' || item.status === 'verified') { %>
+                                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">Verified & Approved</span>
+                                    <% } else { %>
+                                        <span class="bg-rose-50 text-rose-700 border border-rose-200 font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-lg">Declined / Void</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="text-center py-12 border border-dashed border-slate-200 rounded-2xl bg-slate-50/40">
+                <span class="text-3xl block">📋</span>
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mt-3">History Empty</h4>
+                <p class="text-slate-400 text-[11px] mt-0.5 max-w-xs mx-auto">No archived validation records have been processed on this administrative segment yet.</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<div id="deposit-wallets-panel" class="finance-panel-view hidden space-y-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm h-fit space-y-4">
+            <div>
+                <h3 class="font-black text-xs uppercase tracking-wider text-slate-900">Configure Deposit Destination</h3>
+                <p class="text-[11px] text-slate-400 font-medium mt-0.5">Assign target public strings associated with Blockchain network protocols.</p>
+            </div>
+            
+            <form id="walletConfigurationTerminalForm" onsubmit="commitGatewayConfigurationOrder(event)" class="space-y-3.5">
+                <input type="hidden" id="editingGatewayRecordId" value="">
+                
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Blockchain Architecture Infrastructure</label>
+                    <select id="gatewayBlockchainSelector" class="w-full bg-slate-50 border rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
+                        <option value="TRC20">TRON Network (TRC20)</option>
+                        <option value="BEP20">Binance Smart Chain (BEP20)</option>
+                        <option value="ERC20">Ethereum Network (ERC20)</option>
+                        <option value="BTC">Bitcoin Network (BTC)</option>
+                        <option value="SOL">Solana Network (SOL)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Target String Destination Address</label>
+                    <input type="text" id="gatewayPublicStringAddressField" placeholder="Paste precise address index hash..." class="w-full bg-slate-50 border rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
+                </div>
+                
+                <div class="pt-1 flex gap-2">
+                    <button type="button" id="resetFormInterfaceStateCancelBtn" onclick="clearWalletConfigurationForm()" class="hidden w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-2.5 rounded-xl transition-all">Cancel</button>
+                    <button type="submit" id="submitFormOperationActionBtn" class="flex-grow bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-wider py-2.5 rounded-xl shadow-sm transition-all">Save Destination Address</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="font-black text-xs uppercase tracking-wider text-slate-900">Active Pipeline Gateways</h3>
+                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Live configuration values currently mirrored to your subscriber instances.</p>
+                </div>
+                <span class="text-[8px] font-mono bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-black tracking-widest uppercase">Verified Grid</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                            <th class="pb-2.5 font-semibold">Network Cluster</th>
+                            <th class="pb-2.5 font-semibold">Assigned Wallet Address Coordinates</th>
+                            <th class="pb-2.5 text-right font-semibold">Action Intercepts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeGatewayWalletsListStreamBox" class="divide-y divide-slate-50 font-medium text-slate-700">
+                        <tr>
+                            <td colspan="3" class="text-center py-8 text-slate-400 font-medium">Syncing live database repository streams...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterDepositHistoryLogsByTxid() {
+        const query = document.getElementById('depositTxidHistorySearchField').value.toLowerCase();
+        const rows = document.querySelectorAll('.target-deposit-row');
+        rows.forEach(row => {
+            const hashCell = row.querySelector('.hash-string-cell');
+            if (hashCell) {
+                const text = hashCell.textContent || hashCell.innerText;
+                row.style.display = text.toLowerCase().includes(query) ? '' : 'none';
+            }
+        });
+    }
+
+    function filterWithdrawalHistoryLogs() {
+        const query = document.getElementById('withdrawalHistorySearchField').value.toLowerCase();
+        const rows = document.querySelectorAll('.target-withdrawal-row');
+        rows.forEach(row => {
+            const coordinateCell = row.querySelector('.coordinate-string-cell');
+            if (coordinateCell) {
+                const text = coordinateCell.textContent || coordinateCell.innerText;
+                row.style.display = text.toLowerCase().includes(query) ? '' : 'none';
+            }
+        });
+    }
+</script>
+
+<script>
+    // Tab Controller Switches Layout States
+    function toggleFinanceTab(targetPanelId, activeBtn) {
+        document.querySelectorAll('.finance-panel-view').forEach(panel => panel.classList.replace('block', 'hidden'));
+        document.getElementById(targetPanelId).classList.replace('hidden', 'block');
+
+        document.querySelectorAll('.finance-tab-btn').forEach(btn => {
+            btn.classList.remove('border-indigo-600', 'text-indigo-600', 'font-black');
+            btn.classList.add('border-transparent', 'text-slate-400', 'font-bold');
+        });
+        activeBtn.classList.replace('border-transparent', 'border-indigo-600');
+        activeBtn.classList.replace('text-slate-400', 'text-indigo-600');
+        activeBtn.classList.replace('font-bold', 'font-black');
+
+        if(targetPanelId === 'deposit-wallets-panel') {
+            pollConfiguredGatewayWallets();
+        }
+    }
+
+    // Load Wallet Configuration Grid Details
+    async function pollConfiguredGatewayWallets() {
+        const streamBox = document.getElementById('activeGatewayWalletsListStreamBox');
+        try {
+            const response = await fetch('/admin/finance/gateways');
+            if (!response.ok) throw new Error("Repository network stream broken.");
+            const accounts = await response.json();
+
+            if (accounts.length === 0) {
+                streamBox.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-8 text-slate-400 font-medium text-[11px] uppercase tracking-wider">No active address assignments written to database records.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            streamBox.innerHTML = '';
+            accounts.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-mono font-black text-slate-900">${escapeHtmlMarkup(item.blockchain)}</td>
+                    <td class="py-3 font-mono text-slate-500 tracking-tight break-all select-all pr-4">${escapeHtmlMarkup(item.address)}</td>
+                    <td class="py-3 text-right space-x-2 shrink-0">
+                        <button onclick="stagedGatewayEditRecord('${item._id}', '${escapeHtmlMarkup(item.blockchain)}', '${escapeHtmlMarkup(item.address)}')" class="text-indigo-600 hover:text-indigo-800 font-black text-[10px] uppercase tracking-wider">Edit</button>
+                        <button onclick="commitGatewayRemovalOrder('${item._id}')" class="text-rose-600 hover:text-rose-800 font-black text-[10px] uppercase tracking-wider">Delete</button>
+                    </td>
+                `;
+                streamBox.appendChild(tr);
+            });
+        } catch (err) {
+            console.error("Failed to load gateway accounts:", err);
+            streamBox.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-rose-500 font-bold uppercase">Database Grid Synchronization Error</td></tr>`;
+        }
+    }
+
+    // Submit New or Modified Wallet Entry Actions
+    async function commitGatewayConfigurationOrder(event) {
+        event.preventDefault();
+        const editingId = document.getElementById('editingGatewayRecordId').value;
+        const blockchain = document.getElementById('gatewayBlockchainSelector').value;
+        const address = document.getElementById('gatewayPublicStringAddressField').value.trim();
+
+        if(!address) return;
+
+        try {
+            const endpoint = editingId ? `/admin/finance/update-gateway/${editingId}` : '/admin/finance/create-gateway';
+            const requestMethod = editingId ? 'PUT' : 'POST';
+            
+            const response = await fetch(endpoint, {
+                method: requestMethod,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ blockchain, address })
+            });
+
+            const resData = await response.json();
+            if(response.ok && resData.success) {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('Database State Altered', resData.msg || 'Configuration updated.', 'success');
+                } else { alert(resData.msg || 'Saved.'); }
+                clearWalletConfigurationForm();
+                pollConfiguredGatewayWallets();
+            } else {
+                alert(resData.msg || "Operation rejected by database controllers.");
+            }
+        } catch(err) {
+            console.error("Configuration tracking post error:", err);
+        }
+    }
+
+    // Trigger Edit Stage Configuration States
+    function stagedGatewayEditRecord(id, blockchain, address) {
+        document.getElementById('editingGatewayRecordId').value = id;
+        document.getElementById('gatewayBlockchainSelector').value = blockchain;
+        document.getElementById('gatewayPublicStringAddressField').value = address;
+        document.getElementById('submitFormOperationActionBtn').innerText = "Update Wallet Coordinates";
+        document.getElementById('resetFormInterfaceStateCancelBtn').classList.remove('hidden');
+    }
+
+    // Clear and Reset Form Parameters
+    function clearWalletConfigurationForm() {
+        document.getElementById('editingGatewayRecordId').value = '';
+        document.getElementById('gatewayPublicStringAddressField').value = '';
+        document.getElementById('submitFormOperationActionBtn').innerText = "Save Destination Address";
+        document.getElementById('resetFormInterfaceStateCancelBtn').classList.add('hidden');
+    }
+
+    // Delete Configuration Entry Record
+    async function commitGatewayRemovalOrder(id) {
+        if(!confirm("Permanently strip this wallet architecture profile target address configuration from your subscriber displays?")) return;
+        try {
+            const response = await fetch(`/admin/finance/delete-gateway/${id}`, { method: 'DELETE' });
+            const resData = await response.json();
+            if(response.ok && resData.success) {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('Record Cleared', 'Destination parameter purged.', 'success');
+                }
+                pollConfiguredGatewayWallets();
+            } else {
+                alert(resData.msg || "Delete transaction rejected.");
+            }
+        } catch(err) {
+            console.error("Purging channel connection error:", err);
+        }
+    }
+
+    function escapeHtmlMarkup(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // CORE TRANSACTION DISPATCH SETTLED METHOD (Untouched - Original code logic pipeline preserved)
+    async function commitSettlementAction(withdrawalId, actionType) {
+        if (!confirm(`Are you sure you want to execute [${actionType.toUpperCase()}] on this withdrawal ticket request transaction?`)) return;
+        
+        try {
+            const response = await fetch(`/admin/withdrawals/${actionType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ withdrawalId })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification(
+                        actionType === 'approve' ? 'Settled Successfully' : 'Bounced Back', 
+                        result.msg, 
+                        actionType === 'approve' ? 'success' : 'error'
+                    );
+                } else {
+                    alert(result.msg);
+                }
+                
+                const targetRow = document.getElementById(`withdrawal-row-${withdrawalId}`);
+                if (targetRow) {
+                    targetRow.style.opacity = '0.3';
+                    targetRow.style.pointerEvents = 'none';
+                }
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('Pipeline Exception', result.msg || 'Action could not be executed.', 'error');
+                } else {
+                    alert(result.msg || 'Execution failure.');
+                }
+            }
+        } catch (err) {
+            console.error('Settlement transmission error:', err);
+            if (typeof showNotification !== 'undefined') {
+                showNotification('Network Channel Error', 'Request failed down the routing track.', 'error');
+            } else {
+                alert('Network request execution failure.');
+            }
+        }
+    }
+
+    // NEW DEPOSIT VERIFICATION HANDLER DISPATCH METHOD
+    async function commitDepositVerificationAction(depositId, actionType) {
+        if (!confirm(`Are you sure you want to execute [${actionType.toUpperCase()}] on this deposit proof signature?`)) return;
+        
+        try {
+            const response = await fetch(`/admin/deposits/${actionType}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ depositId })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification(
+                        actionType === 'verify' ? 'Verified Successfully' : 'Proof Rejected', 
+                        result.msg, 
+                        actionType === 'verify' ? 'success' : 'error'
+                    );
+                } else {
+                    alert(result.msg);
+                }
+                
+                const targetRow = document.getElementById(`deposit-row-${depositId}`);
+                if (targetRow) {
+                    targetRow.style.opacity = '0.3';
+                    targetRow.style.pointerEvents = 'none';
+                }
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                if (typeof showNotification !== 'undefined') {
+                    showNotification('Pipeline Exception', result.msg || 'Action could not be executed.', 'error');
+                } else {
+                    alert(result.msg || 'Execution failure.');
+                }
+            }
+        } catch (err) {
+            console.error('Deposit processing transmission error:', err);
+            if (typeof showNotification !== 'undefined') {
+                showNotification('Network Channel Error', 'Request failed down the routing track.', 'error');
+            } else {
+                alert('Network request execution failure.');
+            }
+        }
+    }
+    
+</script>

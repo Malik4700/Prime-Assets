@@ -1,0 +1,317 @@
+<div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+        <h3 class="font-black text-lg text-slate-900">User Configuration Directory</h3>
+        <span class="text-[10px] bg-slate-100 border text-slate-500 font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider">
+            Total Managed Matrix Rows: <%= users ? users.filter(u => u.role !== 'admin' && u.role !== 'superadmin').length : 0 %>
+        </span>
+    </div>
+    <p class="text-xs text-slate-400 font-medium mb-4">Manage financial adjustments, verify package buy requests, freeze active accounts, or execution immediate system withdrawal restrictions.</p>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+            <thead>
+                <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                    <th class="pb-3 font-semibold">Profile Identity</th>
+                    <th class="pb-3 font-semibold">User Data Metrics</th>
+                    <th class="pb-3 font-semibold">Active Package Status</th>
+                    <th class="pb-3 font-semibold">Status/Flags</th>
+                    <th class="pb-3 font-semibold text-right">Actions Matrix</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 font-medium">
+                <% if (typeof users !== 'undefined' && users && users.length > 0) { %>
+                    <% for (let user of users) { %>
+                        <% if (user.role !== 'admin' && user.role !== 'superadmin') { %>
+                            <tr class="text-slate-700 hover:bg-slate-50/40 transition-colors">
+                               <td class="py-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-900 block text-sm"><%= user.username %></span>
+                                        <% if (user.referredWithCode) { %>
+                                            <span class="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded-md font-mono" title="Referred by code">
+                                                Ref: <%= user.referredWithCode %>
+                                            </span>
+                                        <% } %>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 font-mono block">ID: <%= user._id %></span>
+                                </td>
+                                <td class="py-4 leading-relaxed">
+                                    Email: <span class="font-bold text-slate-900"><%= user.email %></span><br>
+                                    Phone: <span class="text-slate-500 font-mono"><%= user.phone || 'N/A' %></span><br>
+                                    Country: <span class="text-slate-500"><%= user.country || 'N/A' %></span><br>
+                                    Balance: <span class="font-black text-emerald-600">$<%= (user.balance || 0).toFixed(2) %> USD</span>
+                                </td>
+                                <td class="py-4">
+                                    <span class="font-bold text-slate-800 block">Current running plan</span>
+                                    
+                                    <% 
+                                        // 1. Establish precise display labels corresponding exactly to your active tier static IDs
+                                        const planLabels = {
+                                            "7": "7 Days Beginner Plan",
+                                            "15": "15 Days Standard Plan",
+                                            "30": "30 Days Pro Plan",
+                                            "30_premium": "30 Days VIP Elite Plan",
+                                            "60": "60 Days Royal Wealth Plan",
+                                            "60_platinum": "60 Days Platinum Elite Plan"
+                                        };
+                                        
+                                        const cleanPlanKey = user.currentPlan ? user.currentPlan.toString().trim() : 'None';
+                                        const displayLabel = planLabels[cleanPlanKey] || 'No Running Plan';
+                                    %>
+
+                                    <span class="text-[10px] <%= cleanPlanKey !== 'None' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-semibold' %> block mt-0.5">
+                                        Plan: <%= displayLabel %>
+                                    </span>
+                                    
+                                    <% if (user.planRequestStatus === 'pending') { %>
+                                        <span class="inline-flex items-center gap-1 mt-1 text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-black uppercase animate-pulse">
+                                            ⏳ Wants <%= user.requestedPlanName %> ($<%= user.requestedPlanCost %> USD)
+                                        </span>
+                                    <% } %>
+                                </td>
+                                <td class="py-4 space-y-1">
+                                    <% if (user.isFrozen) { %>
+                                        <span class="block text-[9px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit">Account Frozen</span>
+                                    <% } %>
+                                    <% if (user.isWithdrawRestrained) { %>
+                                        <span class="block text-[9px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit">Withdraw Blocked</span>
+                                    <% } %>
+                                    <% if (user.isBlocked) { %>
+                                        <span class="block text-[9px] bg-slate-900 text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit">Access Blocked</span>
+                                    <% } %>
+                                    <% if (!user.isFrozen && !user.isWithdrawRestrained && !user.isBlocked) { %>
+                                        <span class="block text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit">Standard Access</span>
+                                    <% } %>
+                                </td>
+                                <td class="py-4 text-right space-y-1.5 whitespace-nowrap">
+                                    <button 
+                                        data-id="<%= user._id %>"
+                                        data-username="<%= user.username %>"
+                                        data-balance="<%= user.balance || 0 %>"
+                                        data-frozen="<%= user.isFrozen %>"
+                                        data-restrained="<%= user.isWithdrawRestrained %>"
+                                        data-plan="<%= user.currentPlan || 'None' %>"
+                                        data-reqstatus="<%= user.planRequestStatus || 'none' %>"
+                                        data-reqname="<%= user.requestedPlanName || '' %>"
+                                        data-reqcost="<%= user.requestedPlanCost || 0 %>"
+                                        onclick="openEditModalFromData(this)" 
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-[11px] transition-colors shadow-sm transform active:scale-95">
+                                        Modify Settings
+                                    </button>
+                                    <button 
+                                        data-id="<%= user._id %>"
+                                        data-username="<%= user.username %>"
+                                        onclick="openPasswordModalFromData(this)" 
+                                        class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-2.5 py-1.5 rounded-lg text-[11px] transition-colors shadow-sm transform active:scale-95">
+                                        Password
+                                    </button>
+                                    <button onclick="toggleBlockUser('<%= user._id %>', this)" class="bg-slate-950 hover:bg-slate-800 text-white font-bold px-2.5 py-1.5 rounded-lg text-[11px] transition-colors border shadow-sm">
+                                        <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                                    </button>
+                                    <button onclick="triggerPurgeConfirmation('<%= user._id %>')" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-[11px] transition-colors shadow-sm">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% } %>
+                    <% if (users.filter(u => u.role !== 'admin' && u.role !== 'superadmin').length === 0) { %>
+                        <tr>
+                            <td colspan="5" class="text-center py-12 text-slate-400 font-bold">
+                                <span class="text-xl block mb-1">📦</span>
+                                No tracking database records verified under this network node invitation handle.
+                            </td>
+                        </tr>
+                    <% } %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" class="text-center py-12 text-slate-400 font-bold">
+                            <span class="text-xl block mb-1">📦</span>
+                            No tracking database records verified under this network node invitation handle.
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="adminModifyUserModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform scale-95 opacity-0 transition-all duration-300 custom-modal-card">
+        
+        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <div>
+                <h3 class="font-black text-slate-900 text-sm uppercase tracking-wider">Modify Account Settings</h3>
+                <p id="modalTargetUserSubtitle" class="text-[10px] text-slate-400 font-medium mt-0.5">Target: Loading Identity...</p>
+            </div>
+            <button onclick="closeModifyAccountModal()" class="text-slate-400 hover:text-slate-600 font-black text-lg">&times;</button>
+        </div>
+
+        <div class="p-6 space-y-5 max-h-[500px] overflow-y-auto">
+            <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Financial Ledger Adjustment</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="modalBalanceActionValue" placeholder="Amount (USD)" class="bg-slate-50 border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-indigo-500 w-full" step="any" min="0">
+                    <div class="flex gap-1">
+                        <button onclick="executeLedgerMutation('add')" class="bg-emerald-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-wide flex-1 hover:bg-emerald-700 transition-colors">Deposit</button>
+                        <button onclick="executeLedgerMutation('deduct')" class="bg-rose-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-wide flex-1 hover:bg-rose-700 transition-colors">Deduct</button>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <div class="space-y-3">
+                <label class="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Account Security Overrides</label>
+                
+                <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3 border">
+                    <div>
+                        <span class="text-xs font-bold text-slate-800 block">Freeze Account Access</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Locks assets and displays frozen status badge beside balance.</span>
+                    </div>
+                    <button id="modalToggleFreezeBtn" onclick="executeSecurityToggleAction('freeze')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all transform active:scale-95"></button>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-50 rounded-xl p-3 border">
+                    <div>
+                        <span class="text-xs font-bold text-slate-800 block">Restrict Withdrawals</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Completely blocks and disables user from clicking checkout inputs.</span>
+                    </div>
+                    <button id="modalToggleWithdrawBtn" onclick="executeSecurityToggleAction('withdraw')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all transform active:scale-95"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let activeModalUserId = null;
+
+    function openEditModalFromData(button) {
+        activeModalUserId = button.getAttribute('data-id');
+        const username = button.getAttribute('data-username');
+        const balance = parseFloat(button.getAttribute('data-balance')).toFixed(2);
+        const isFrozen = button.getAttribute('data-frozen') === 'true';
+        const isRestrained = button.getAttribute('data-restrained') === 'true';
+        const plan = button.getAttribute('data-plan') || 'None';
+
+        document.getElementById('modalTargetUserSubtitle').innerText = `Target: ${username} | Balance: $${balance} USD | Active Plan: ${plan}`;
+
+        const freezeBtn = document.getElementById('modalToggleFreezeBtn');
+        if (isFrozen) {
+            freezeBtn.innerText = "Unfreeze Account";
+            freezeBtn.className = "bg-rose-600 text-white font-black px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider";
+        } else {
+            freezeBtn.innerText = "Freeze Account";
+            freezeBtn.className = "bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider";
+        }
+
+        const withdrawBtn = document.getElementById('modalToggleWithdrawBtn');
+        if (isRestrained) {
+            withdrawBtn.innerText = "Allow Withdrawals";
+            withdrawBtn.className = "bg-orange-600 text-white font-black px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider";
+        } else {
+            withdrawBtn.innerText = "Block Withdrawals";
+            withdrawBtn.className = "bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider";
+        }
+
+        const modal = document.getElementById('adminModifyUserModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.custom-modal-card').classList.replace('scale-95', 'scale-100');
+            modal.querySelector('.custom-modal-card').classList.replace('opacity-0', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModifyAccountModal() {
+        const modal = document.getElementById('adminModifyUserModal');
+        modal.querySelector('.custom-modal-card').classList.replace('scale-100', 'scale-95');
+        modal.querySelector('.custom-modal-card').classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 250);
+        activeModalUserId = null;
+        document.getElementById('modalBalanceActionValue').value = '';
+    }
+
+    async function executeLedgerMutation(actionType) {
+        const amountField = document.getElementById('modalBalanceActionValue');
+        const value = parseFloat(amountField.value);
+        if (isNaN(value) || value <= 0) return alert("Please specify a valid financial asset configuration packet volume amount.");
+        try {
+            const response = await fetch('/admin/update-balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: activeModalUserId, amount: value, action: actionType })
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                window.location.reload();
+            } else {
+                alert(result.msg || "Transaction mutation route execution error.");
+            }
+        } catch (err) {
+            alert("Ledger synchronization channel failure.");
+        }
+    }
+
+    async function executeSecurityToggleAction(securityTrack) {
+        const targetRoute = securityTrack === 'freeze' ? '/admin/toggle-freeze' : '/admin/toggle-withdraw-block';
+        try {
+            const response = await fetch(targetRoute, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: activeModalUserId })
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                window.location.reload();
+            } else {
+                alert(result.msg || "Flags modification matrix rejected.");
+            }
+        } catch (err) {
+            alert("Network communication channel block registered.");
+        }
+    }
+
+    async function triggerPurgeConfirmation(userId) {
+        const completelySure = confirm("⚠️ CRITICAL ACTION: Are you absolutely sure you want to permanently delete this user account? This cannot be undone.");
+        
+        if (completelySure) {
+            try {
+                const response = await fetch('/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    window.location.reload();
+                } else {
+                    alert(result.msg || "Account purge compilation error.");
+                }
+            } catch (err) {
+                alert("Core synchronization failure tracking down deletion terminal.");
+            }
+        }
+    }
+
+    async function toggleBlockUser(userId, buttonElement) {
+        try {
+            const response = await fetch('/admin/toggle-block', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userId })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                window.location.reload();
+            } else {
+                alert(result.msg || "Failed to update user blocking state flags.");
+            }
+        } catch (err) {
+            alert("Communication failure with the core authentication matrix.");
+        }
+    }
+</script>
