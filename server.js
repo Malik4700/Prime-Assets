@@ -21,7 +21,9 @@ const adminRoutes = require('./routes/admin');
 const superadminRoutes = require('./routes/superadmin');
 const referralRoutes = require('./routes/referrals');
 const ReferralCode = require('./models/ReferralCode');
-const MongoStore = require('connect-mongo');
+
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,10 +44,9 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback_secret_key_2026',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-        // This automatically reuses your existing Mongoose database link setup
-        mongoUrl: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
-        ttl: 14 * 24 * 60 * 60 // Keeps the session stored in MongoDB for 14 days
+    store: new MongoStore({
+        url: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
+        ttl: 14 * 24 * 60 * 60
     }),
     cookie: { 
         maxAge: 14 * 24 * 60 * 60 * 1000, // Keeps cookie saved in browser for 14 days (in milliseconds)
