@@ -34,8 +34,8 @@ router.get('/admin/referral-manager', isAdmin, async (req, res) => {
 });
 
 // [POST] Create a unique 7-8 mixed digit alphanumeric referral code
-router.post('/admin/referral-manager/generate', isAdmin, async (req, res) => {
-    try {
+router.post('/generate', isAdmin, async (req, res) => {
+        try {
         const { targetUsername } = req.body;
         
         // Match the identical session key structure used in the GET block

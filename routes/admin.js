@@ -898,36 +898,4 @@ router.post('/update-whatsapp-route', async (req, res) => {
     }
 });
 
-// ==================== NEW REFERRAL CODE GENERATION ENDPOINT ====================
-router.post('/referral-manager/generate', isAdmin, async (req, res) => {
-    try {
-        const adminManagerCode = req.session.adminCode ? req.session.adminCode.trim() : '';
-        
-        if (!adminManagerCode) {
-            return res.status(400).json({ success: false, msg: 'Invalid administrative tracking node.' });
-        }
-
-        // Generate an 8-character single-use alphanumeric passcode string
-        const generatedPasscode = Math.random().toString(36).substring(2, 10).toUpperCase();
-
-        const freshReferralCode = new ReferralCode({
-            code: generatedPasscode,
-            assignedAdminCode: adminManagerCode.toLowerCase(),
-            status: 'active', // can be switched to 'used' later
-            createdAt: new Date()
-        });
-
-        await freshReferralCode.save();
-
-        return res.json({ 
-            success: true, 
-            msg: 'New referral payload generated cleanly.', 
-            code: generatedPasscode 
-        });
-    } catch (err) {
-        console.error('Error generating referral token:', err);
-        return res.status(500).json({ success: false, msg: 'Internal server token routing crash.' });
-    }
-});
-
 module.exports = router;
