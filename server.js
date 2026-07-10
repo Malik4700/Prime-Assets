@@ -42,8 +42,8 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback_secret_key_2026',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
+    store: new MongoStore({
+        mongooseConnection: mongoose.connection,
         ttl: 14 * 24 * 60 * 60 // 14 days session tracking
     }),
     cookie: { 
