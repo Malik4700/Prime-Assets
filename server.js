@@ -21,6 +21,7 @@ const adminRoutes = require('./routes/admin');
 const superadminRoutes = require('./routes/superadmin');
 const referralRoutes = require('./routes/referrals');
 const ReferralCode = require('./models/ReferralCode');
+const MongoStore = require('connect-mongo');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,7 +42,17 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'fallback_secret_key_2026',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } 
+    store: MongoStore.create({
+        // This automatically reuses your existing Mongoose database link setup
+        mongoUrl: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/your-database-name',
+        ttl: 14 * 24 * 60 * 60 // Keeps the session stored in MongoDB for 14 days
+    }),
+    cookie: { 
+        maxAge: 14 * 24 * 60 * 60 * 1000, // Keeps cookie saved in browser for 14 days (in milliseconds)
+        httpOnly: true,                  // Helps protect against XSS token theft
+        secure: process.env.NODE_ENV === 'production', // Automatically uses secure HTTPS cookies on Railway production
+        sameSite: 'lax'
+    }
 }));
 
 app.set('view engine', 'ejs');
