@@ -243,11 +243,11 @@
             const usernameInput = document.getElementById('targetUsername').value;
             
             try {
-                const response = await fetch('/admin/referral-manager/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetUsername: usernameInput })
-                });
+                const response = await fetch('/generate-referral-code', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ targetUsername: usernameInput })
+});
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
