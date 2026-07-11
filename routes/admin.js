@@ -10,6 +10,7 @@ const Withdrawal = require('../models/Withdrawal');
 const Deposit = require('../models/Deposit'); // Imported the new Deposit model
 const Admin = require('../models/Admin');
 const ReferralCode = require('../models/ReferralCode');
+const Update = require('../models/Update');
 
 // Dynamic fallback setup for Gateway Schema definition if not created in separate files
 const Gateway = mongoose.models.Gateway || mongoose.model('Gateway', new mongoose.Schema({
@@ -33,6 +34,30 @@ const isUser = (req, res, next) => {
     }
     return res.status(401).json({ success: false, msg: 'Unauthorized session matrix.' });
 };
+
+// GET Route: Render the Updates Page and clear the dynamic notification dot
+router.get('/updates', async (req, res) => {
+    // Force redirect to login if session doesn't exist
+    if (!req.session || !req.session.userId) {
+        return res.redirect('/login');
+    }
+
+    try {
+        // 1. Fetch all updates posted by superadmin, newest first
+        const updates = await Update.find().sort({ createdAt: -1 });
+
+        // 2. Clear the red dot: Update user's last viewed time block to right now
+        await User.findByIdAndUpdate(req.session.userId, {
+            lastViewedUpdatesAt: new Date()
+        });
+
+        // 3. Render your user-side view template passing the database array updates
+        res.render('user/updates', { updates });
+    } catch (err) {
+        console.error("Error loading user updates panel view:", err);
+        res.status(500).send("Unable to load platform updates feed.");
+    }
+});
 
 // ==================== NEW DEDICATED NON-BLOCKING USER DATA SYNC ENDPOINT ====================
 router.get('/user-sync-data', isUser, async (req, res) => {

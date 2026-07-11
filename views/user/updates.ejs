@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Updates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(4, 23, 19, 0.55), rgba(2, 15, 12, 0.60)), url('/BG.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .premium-glass {
+            background: rgba(4, 25, 20, 0.70);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+        }
+        .text-glow { 
+            text-shadow: 0 0 10px rgba(52, 211, 153, 0.4); 
+        }
+        /* Hide standard scrollbars for a cleaner mobile application feel */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen font-sans antialiased pb-24 selection:bg-emerald-500/30">
+
+    <header class="w-full bg-slate-950/40 backdrop-blur-md border-b border-white/5 h-16 flex items-center justify-between px-6 sticky top-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="bg-emerald-500 text-slate-950 font-black text-[10px] px-2 py-1 rounded shadow-md tracking-wider">
+                PAH
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black tracking-wider text-white uppercase">Prime Assets Holdings 4.0</span>
+                <span class="text-[8px] text-amber-400 font-mono flex items-center gap-1 uppercase tracking-widest mt-0.5">
+                    Secure 🔒
+                </span>
+            </div>
+        </div>
+        
+        <div class="flex items-center">
+            <span class="text-[8px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-black tracking-wider uppercase shadow-sm">
+                EXCLUSIVE UPDATES
+            </span>
+        </div>
+    </header>
+
+    <div class="max-w-md mx-auto px-6 pt-6 flex items-center space-x-2">
+        <span class="text-sm">🔔</span>
+        <h1 class="text-xs font-black tracking-wider uppercase text-slate-400 font-mono">collaborated by MaritimeSupplySuites</h1>
+    </div>
+
+    <main class="max-w-md mx-auto p-4 space-y-4 mt-1">
+        
+        <% if (updates && updates.length > 0) { %>
+            <% updates.forEach(item => { %>
+                <div class="premium-glass inner-glow p-5 rounded-[24px] space-y-3">
+                    
+                    <p class="text-xs text-slate-200 leading-relaxed font-normal whitespace-pre-line">
+    <%- item.text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-emerald-400 hover:underline break-all">$1</a>') %>
+</p>
+
+                    <% if (item.imageUrl) { %>
+                        <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-inner">
+                            <img src="<%= item.imageUrl %>" alt="System update asset" class="w-full h-auto object-cover max-h-64" />
+                        </div>
+                    <% } %>
+
+                    <div class="text-[8px] text-slate-500 font-mono tracking-wider pt-1 border-t border-white/5 text-right">
+                        <%= new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }) %>
+                    </div>
+
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="premium-glass inner-glow p-8 text-center text-xs text-slate-500 font-mono rounded-[24px]">
+                Stay Tuned For Updates, Coming Soon!
+            </div>
+        <% } %>
+
+    </main>
+
+    <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
+        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-emerald-400 font-bold transition-colors">
+            <span class="text-xl">🏠</span><span class="text-[9px] uppercase tracking-wider font-black">Home</span>
+        </a>
+        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+        </a>
+        <a href="/admin/updates" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
+            <span class="text-xl drop-shadow text-glow">🔔</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Updates</span>
+        </a>
+        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+        </a>
+    </nav>
+
+</body>
+</html>

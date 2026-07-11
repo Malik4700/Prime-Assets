@@ -9,12 +9,18 @@ const UserSchema = new mongoose.Schema({
     gender: { type: String, required: true },
     profileImage: { type: String, default: '' }, 
     
+    lastViewedUpdatesAt: {
+    type: Date,
+    default: new Date(0) // Default to an old date so new users automatically see a red dot if updates exist
+},
+
     // THE ROLE SYSTEM: Defines authorization levels across the entire application
     role: {
         type: String, 
         enum: ['user', 'admin', 'superadmin'], 
         default: 'user' 
     },
+    
     
     // THE ISOLATION KEY: Links regular users to an admin's invite framework
     assignedAdminCode: { type: String, index: true, default: '' }, 

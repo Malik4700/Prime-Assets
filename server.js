@@ -16,6 +16,19 @@ const connectDB = require('./config/db');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/'); // Saves files into your new folder
+    },
+    filename: function (req, file, cb) {
+        // Generates a unique filename using the current timestamp + original name
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // Import database models
 const User = require('./models/User'); 
@@ -65,6 +78,33 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Global Middleware to check for unread updates for the logged-in user
+app.use(async (req, res, next) => {
+    // If the user is logged in, check their update status
+    if (req.session && req.session.userId) {
+        try {
+            // Find the single absolute newest update post in the system
+            const latestUpdate = await mongoose.model('Update').findOne().sort({ createdAt: -1 });
+            
+            // Find the current logged-in user data profile
+            const currentUser = await mongoose.model('User').findById(req.session.userId);
+
+            if (latestUpdate && currentUser) {
+                // If the newest update is newer than the last time they viewed the page, show the dot
+                res.locals.hasUnreadUpdates = latestUpdate.createdAt > currentUser.lastViewedUpdatesAt;
+            } else {
+                res.locals.hasUnreadUpdates = false;
+            }
+        } catch (err) {
+            console.error("Error evaluating red dot indicator:", err);
+            res.locals.hasUnreadUpdates = false;
+        }
+    } else {
+        res.locals.hasUnreadUpdates = false;
+    }
+    next();
+});
 
 // ============================================================================
 // 🔒 GLOBAL MAINTENANCE INTERLOCK SYSTEM (UPDATED BYPASS)

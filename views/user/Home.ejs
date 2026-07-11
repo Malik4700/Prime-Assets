@@ -193,16 +193,29 @@
 </div>
 
     <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
-        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
-            <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
-        </a>
-        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
-        </a>
-        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
-        </a>
-    </nav>
+    <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
+        <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
+    </a>
+    <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+        <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+    </a>
+    
+    <a href="/admin/updates" class="relative flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+        <span class="text-xl">🔔</span>
+        <span class="text-[9px] uppercase tracking-wider font-black">Updates</span>
+        
+        <% if (hasUnreadUpdates) { %>
+            <span class="absolute top-0 right-2 flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+        <% } %>
+    </a>
+
+    <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+        <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+    </a>
+</nav>
 
     <script>
         let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;

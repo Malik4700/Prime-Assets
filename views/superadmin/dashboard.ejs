@@ -40,13 +40,16 @@
         </div>
 
         <nav class="flex-grow p-4 space-y-1.5 font-medium text-xs tracking-wide uppercase">
-            <button onclick="switchSuperView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold">
-                <span>🛡️</span><span>Global Ledger</span>
-            </button>
-            <button onclick="switchSuperView('admins')" id="nav-admins" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
-                <span>💼</span><span>Manage Manager Nodes</span>
-            </button>
-        </nav>
+    <button onclick="switchSuperView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold">
+        <span>🛡️</span><span>Global Ledger</span>
+    </button>
+    <button onclick="switchSuperView('admins')" id="nav-admins" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+        <span>💼</span><span>Manage Manager Nodes</span>
+    </button>
+    <button onclick="switchSuperView('broadcast')" id="nav-broadcast" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+        <span>📢</span><span>Broadcast Desk</span>
+    </button>
+</nav>
 
         <div class="px-4 pb-2">
             <form action="/superadmin/toggle-maintenance" method="POST" onsubmit="return confirm('WARNING: Triggering global maintenance updates structural access flags across all sub-nodes. Proceed?');">
@@ -99,6 +102,7 @@
                     </div>
                 </div>
 
+                
                 <div class="space-y-3">
                     <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Hierarchical Node Tier Breakdowns</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -217,6 +221,87 @@
                 </div>
             </section>
 
+            <section id="view-broadcast" class="super-view space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto items-start">
+        
+        <div class="premium-glass inner-glow p-6 rounded-[24px] space-y-4">
+            <div class="flex items-center space-x-3 border-b border-white/5 pb-3">
+                <span class="text-xl">⚡</span>
+                <div>
+                    <h2 class="font-black text-sm tracking-wide uppercase text-white">Broadcast Desk</h2>
+                    <p class="text-[10px] text-slate-400 font-mono">Push text & images directly to user dashboards</p>
+                </div>
+            </div>
+
+            <form action="/superadmin/create-update" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Update Message</label>
+                    <textarea name="text" rows="4" class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500/30 font-sans resize-none" placeholder="Type platform updates or system adjustments here..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Attach Image Asset (Optional)</label>
+                    <div class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 flex items-center justify-between">
+                        <input type="file" name="image" accept="image/*" class="text-xs text-slate-400 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-mono file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer w-full" />
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition uppercase">
+                    Publish Platform Update
+                </button>
+            </form>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center space-x-2 pl-1">
+                <span class="text-sm">👁️</span>
+                <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">Live Dashboard Feed Mirror</h4>
+            </div>
+
+            <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                <% if (typeof updates !== 'undefined' && updates.length > 0) { %>
+                    <% updates.forEach(item => { %>
+                        <div class="premium-glass inner-glow p-5 rounded-[24px] space-y-4 relative group">
+                            
+                            <form action="/superadmin/edit-update/<%= item._id %>" method="POST" class="space-y-3">
+                                <textarea name="text" rows="3" required class="w-full bg-black/30 border border-transparent focus:border-emerald-500/20 rounded-xl p-2 text-xs text-slate-200 focus:outline-none font-sans resize-none transition-all"><%= item.text %></textarea>
+                                
+                                <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                                    <span class="text-[8px] text-slate-500 font-mono">
+                                        <%= new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }) %>
+                                    </span>
+                                    <button type="submit" class="text-[9px] font-mono text-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-wider bg-emerald-500/5 px-2.5 py-1 rounded border border-emerald-500/10 transition">
+                                        💾 Save Edit
+                                    </button>
+                                </div>
+                            </form>
+
+                            <% if (item.imageUrl) { %>
+                                <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 max-h-40">
+                                    <img src="<%= item.imageUrl %>" alt="Asset mirror" class="w-full h-full object-cover opacity-80" />
+                                </div>
+                            <% } %>
+
+                            <div class="absolute top-2 right-4">
+                                <form action="/superadmin/delete-update/<%= item._id %>" method="POST" onsubmit="return confirm('CRITICAL CORE ACTION: Are you absolutely positive you want to completely erase this systemic update row item permanently?');">
+                                    <button type="submit" class="text-slate-600 hover:text-rose-400 text-xs p-1 transition-all duration-200" title="Delete Update Row">
+                                        ❌
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="premium-glass inner-glow p-8 text-center text-xs text-slate-500 font-mono rounded-[24px]">
+                        No active records populated down database pipelines.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+    </div>
+</section>
+
         </div>
     </main>
 
@@ -277,6 +362,34 @@
 
         function openCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('hidden', 'flex'); }
         function closeCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('flex', 'hidden'); }
+    function switchSuperView(viewName) {
+    // 1. Hide all view panels
+    document.querySelectorAll('.super-view').forEach(view => view.classList.remove('active'));
+    
+    // 2. Show the active view panel
+    document.getElementById(`view-${viewName}`).classList.add('active');
+
+    // 3. Reset sidebar link backgrounds to default
+    document.querySelectorAll('nav button').forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+    });
+
+    // 4. Highlight current link tab
+    const activeBtn = document.getElementById(`nav-${viewName}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+        activeBtn.classList.add('bg-emerald-600', 'text-white');
+    }
+
+    // 5. Update header title text context
+    const viewTitles = {
+        overview: "Global Ledger",
+        admins: "Manage Manager Nodes",
+        broadcast: "Broadcast Desk"
+    };
+    document.getElementById('viewTitle').innerText = viewTitles[viewName] || "Superadmin Workspace";
+}
     </script>
 </body>
 </html>

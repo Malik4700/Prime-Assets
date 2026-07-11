@@ -3,27 +3,37 @@ const router = express.Router();
 const User = require('../models/User'); 
 const Superadmin = require('../models/Superadmin');
 const bcrypt = require('bcryptjs'); 
+const Update = require('../models/Update');
+const multer = require('multer');
+const path = require('path');
+
+// Reconstruct the exact upload configuration rule for this route file context
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage: storage });
 
 // 1. Render the Superadmin Dashboard with data
 router.get('/dashboard', async (req, res) => {
     try {
-        // Fetch only users who have the role of 'admin'
         const admins = await User.find({ role: 'admin' });
-        
-        // Fetch the global system configurations via the superadmin profile record
         const superadminConfig = await Superadmin.findOne() || { isMaintenanceActive: false };
-        
-        // Dynamic aggregations for totals dashboard display
         const totalUsersCount = await User.countDocuments({ role: 'user' });
         
-        // Compute cumulative total deposit values dynamically from User collections
         const depositAgg = await User.aggregate([
             { $match: { role: 'user' } },
             { $group: { _id: null, total: { $sum: "$totalDeposits" } } }
         ]);
         const totalDeposits = depositAgg.length > 0 ? depositAgg[0].total : 0.00;
 
-        // Structured dummy matrix mapping metrics for all 6 tiers to pass to view cleanly
+        // FETCH ALL UPDATES TO SHOW ON SUPERADMIN VIEW
+        const updates = await Update.find().sort({ createdAt: -1 });
+
         const tierMetrics = {
             tier1: { admins: admins.length, users: totalUsersCount, deposits: totalDeposits, withdrawals: 0, activePlans: 1 },
             tier2: { admins: 0, users: 0, deposits: 0, withdrawals: 0, activePlans: 0 },
@@ -33,12 +43,13 @@ router.get('/dashboard', async (req, res) => {
             tier6: { admins: 0, users: 0, deposits: 0, withdrawals: 0, activePlans: 0 }
         };
 
-        // Render the view with variables matching your updated dashboard requirements perfectly
+        // Added updates array right here
         res.render('superadmin/dashboard', { 
             admins,
             totalDeposits,
             totalUsersCount,
             tierMetrics,
+            updates, 
             isMaintenanceActive: superadminConfig.isMaintenanceActive
         });
     } catch (err) {
@@ -46,7 +57,59 @@ router.get('/dashboard', async (req, res) => {
         res.status(500).send("Core system error fetching ledger.");
     }
 });
+// POST route to handle creating a new platform update with an image file
+router.post('/create-update', upload.single('image'), async (req, res) => {
+    try {
+        // Extract text and clean it, falling back to an empty string if blank/missing
+        let { text } = req.body;
+        if (!text) {
+            text = ""; 
+        }
+        
+        // If a file was uploaded, store its public URL path, otherwise null
+        let imageUrl = null;
+        if (req.file) {
+            imageUrl = '/uploads/' + req.file.filename;
+        }
 
+        // Save the new update record to your MongoDB database
+        const newUpdate = new Update({
+            text: text,
+            imageUrl: imageUrl
+        });
+
+        await newUpdate.save();
+
+        // Redirect back to the superadmin dashboard panel with success
+        res.redirect('/superadmin/dashboard?success=true');
+    } catch (err) {
+        console.error("Error creating update:", err);
+        res.status(500).send("Core system failed to broadcast update.");
+    }
+});
+
+// POST route to handle deleting an update post record
+router.post('/delete-update/:id', async (req, res) => {
+    try {
+        await Update.findByIdAndDelete(req.params.id);
+        res.redirect('/superadmin/dashboard?deleted=true');
+    } catch (err) {
+        console.error("Error deleting update:", err);
+        res.status(500).send("Core system failed to drop update row.");
+    }
+});
+
+// POST route to handle editing update text inline
+router.post('/edit-update/:id', async (req, res) => {
+    try {
+        const { text } = req.body;
+        await Update.findByIdAndUpdate(req.params.id, { text: text });
+        res.redirect('/superadmin/dashboard?updated=true');
+    } catch (err) {
+        console.error("Error editing update:", err);
+        res.status(500).send("Core system failed to update content node.");
+    }
+});
 
 // 2. Process Form Submission to Provision a New Admin
 router.post('/create-admin', async (req, res) => {
