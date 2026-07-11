@@ -7,16 +7,7 @@ const Update = require('../models/Update');
 const multer = require('multer');
 const path = require('path');
 
-// Reconstruct the exact upload configuration rule for this route file context
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-const upload = multer({ storage: storage });
+
 
 // 1. Render the Superadmin Dashboard with data
 router.get('/dashboard', async (req, res) => {
@@ -57,9 +48,7 @@ router.get('/dashboard', async (req, res) => {
         res.status(500).send("Core system error fetching ledger.");
     }
 });
-// 1. CHANGE THIS: Switch from diskStorage to memoryStorage
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+
 
 // 2. UPDATE THIS: Process the image buffer as a Base64 string
 router.post('/create-update', upload.single('image'), async (req, res) => {
