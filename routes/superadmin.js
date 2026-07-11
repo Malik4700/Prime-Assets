@@ -57,30 +57,31 @@ router.get('/dashboard', async (req, res) => {
         res.status(500).send("Core system error fetching ledger.");
     }
 });
-// POST route to handle creating a new platform update with an image file
+// 1. CHANGE THIS: Switch from diskStorage to memoryStorage
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// 2. UPDATE THIS: Process the image buffer as a Base64 string
 router.post('/create-update', upload.single('image'), async (req, res) => {
     try {
-        // Extract text and clean it, falling back to an empty string if blank/missing
         let { text } = req.body;
         if (!text) {
             text = ""; 
         }
         
-        // If a file was uploaded, store its public URL path, otherwise null
         let imageUrl = null;
+        // If an image was uploaded, convert its raw memory buffer into a Base64 data URI string
         if (req.file) {
-            imageUrl = '/uploads/' + req.file.filename;
+            const base64Image = req.file.buffer.toString('base64');
+            imageUrl = `data:${req.file.mimetype};base64,${base64Image}`;
         }
 
-        // Save the new update record to your MongoDB database
         const newUpdate = new Update({
             text: text,
             imageUrl: imageUrl
         });
 
         await newUpdate.save();
-
-        // Redirect back to the superadmin dashboard panel with success
         res.redirect('/superadmin/dashboard?success=true');
     } catch (err) {
         console.error("Error creating update:", err);

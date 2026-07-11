@@ -68,11 +68,11 @@
     <%- item.text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-emerald-400 hover:underline break-all">$1</a>') %>
 </p>
 
-                    <% if (item.imageUrl) { %>
-                        <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-inner">
-                            <img src="<%= item.imageUrl %>" alt="System update asset" class="w-full h-auto object-cover max-h-64" />
-                        </div>
-                    <% } %>
+                   <% if (item.imageUrl) { %>
+    <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 shadow-inner">
+        <img src="<%= item.imageUrl %>" alt="System update asset" class="w-full h-auto object-cover max-h-64" />
+    </div>
+<% } %>
 
                     <div class="text-[8px] text-slate-500 font-mono tracking-wider pt-1 border-t border-white/5 text-right">
                         <%= new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }) %>

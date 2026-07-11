@@ -277,10 +277,10 @@
                             </form>
 
                             <% if (item.imageUrl) { %>
-                                <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 max-h-40">
-                                    <img src="<%= item.imageUrl %>" alt="Asset mirror" class="w-full h-full object-cover opacity-80" />
-                                </div>
-                            <% } %>
+    <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 max-h-40">
+        <img src="<%= item.imageUrl %>" alt="Asset mirror" class="w-full h-full object-cover opacity-80" />
+    </div>
+<% } %>
 
                             <div class="absolute top-2 right-4">
                                 <form action="/superadmin/delete-update/<%= item._id %>" method="POST" onsubmit="return confirm('CRITICAL CORE ACTION: Are you absolutely positive you want to completely erase this systemic update row item permanently?');">
