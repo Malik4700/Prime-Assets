@@ -7,7 +7,9 @@ const Update = require('../models/Update');
 const multer = require('multer');
 const path = require('path');
 
-
+// 🟢 INITIALIZE MEMORY STORAGE MIDDLEWARE HERE
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // 1. Render the Superadmin Dashboard with data
 router.get('/dashboard', async (req, res) => {
