@@ -45,9 +45,15 @@
         setTimeout(safelyFetchWhatsAppValue, 300);
         setTimeout(safelyFetchWhatsAppValue, 600);
 
-        // 🟢 Global Event Delegation: Removes dependencies on direct local target lifetimes
-        document.removeEventListener('click', handleGlobalWhatsAppClick);
-        document.addEventListener('click', handleGlobalWhatsAppClick);
+        // 🟢 Improved Global Event Delegation
+document.removeEventListener('click', handleGlobalWhatsAppClick);
+document.addEventListener('click', function(e) {
+    // Only proceed if the click is specifically on our button
+    const targetBtn = e.target.closest('#btnCommitWhatsApp');
+    if (targetBtn) {
+        handleGlobalWhatsAppClick(e);
+    }
+});
 
         function handleGlobalWhatsAppClick(e) {
             // Check if the clicked target or its closest ancestor is our commit button
