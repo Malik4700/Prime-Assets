@@ -110,6 +110,13 @@
         usersList.forEach(user => {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-slate-50/50 transition-colors";
+
+            // Determine badge style based on plan type
+            const isPromo = user.requestedPlanName && user.requestedPlanName.startsWith('PROMO:');
+            const badgeClass = isPromo 
+                ? "bg-amber-500 text-white border-amber-600" 
+                : "bg-amber-50 text-amber-700 border-amber-200";
+
             tr.innerHTML = `
                 <td class="py-4 px-6">
                     <p class="font-black text-slate-900">${user.username}</p>
@@ -117,7 +124,9 @@
                 </td>
                 <td class="py-4 px-4 font-bold text-slate-800">$${parseFloat(user.balance || 0).toFixed(2)}</td>
                 <td class="py-4 px-4">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">${user.requestedPlanName || 'Subscription'}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-sm ${badgeClass}">
+                        ${user.requestedPlanName || 'Subscription'}
+                    </span>
                     <p class="text-[9px] text-slate-400 font-black tracking-widest mt-1">HOLD FEE: $${parseFloat(user.requestedPlanCost || 0).toFixed(2)}</p>
                 </td>
                 <td class="py-4 px-4">

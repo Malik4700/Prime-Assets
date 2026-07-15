@@ -268,9 +268,9 @@
         }
 
         function queryActiveGatewaysMappingGrid() {
-    const rowStream = document.getElementById('depositWalletsRenderStream');
-    if (!rowStream) return;
-    rowStream.innerHTML = `<div class="text-center py-4 text-xs font-bold text-slate-400 animate-pulse">Mapping network gateways...</div>`;
+            const rowStream = document.getElementById('depositWalletsRenderStream');
+            if (!rowStream) return;
+            rowStream.innerHTML = `<div class="text-center py-4 text-xs font-bold text-slate-400 animate-pulse">Mapping network gateways...</div>`;
             
             fetch('/admin/api/get-deposit-gateways')
                 .then(res => res.json())
@@ -320,45 +320,46 @@
         }
 
         function commitProofTxidVerificationLogSignature() {
-    const txidHash = document.getElementById('topupTxidInput').value;
-    if (!txidHash || txidHash.trim() === '') {
-        triggerAppAlert('Parameter Missing', 'Please paste the accurate transaction TXID verification signature.', '⚠️');
-        return;
-    }
+            const txidHash = document.getElementById('topupTxidInput').value;
+            if (!txidHash || txidHash.trim() === '') {
+                triggerAppAlert('Parameter Missing', 'Please paste the accurate transaction TXID verification signature.', '⚠️');
+                return;
+            }
 
-    fetch('/admin/report-deposit-proof', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            blockchain: document.getElementById('userDepositNetworkSelector').value,
-            txid: txidHash.trim()
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            triggerAppAlert('Success', 'Deposit log successfully transmitted to verification node layers!', '✅');
-            document.getElementById('topupTxidInput').value = '';
-            
-            // Close the topup modal cleanly if the function exists
-            if (typeof toggleTopupModal === 'function') {
-                toggleTopupModal(false);
-            }
-            
-            // Force a data sync refresh instantly so the new item shows up in the user's log grid
-            if (typeof syncData === 'function') {
-                syncData();
-            }
-        } else {
-            triggerAppAlert('Verification Rejected', data.msg || 'Proof failed verification checks.', '❌');
+            fetch('/admin/report-deposit-proof', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    blockchain: document.getElementById('userDepositNetworkSelector').value,
+                    txid: txidHash.trim()
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    triggerAppAlert('Success', 'Deposit log successfully transmitted to verification node layers!', '✅');
+                    document.getElementById('topupTxidInput').value = '';
+                    
+                    // Close the topup modal cleanly if the function exists
+                    if (typeof toggleTopupModal === 'function') {
+                        toggleTopupModal(false);
+                    }
+                    
+                    // Force a data sync refresh instantly so the new item shows up in the user's log grid
+                    if (typeof syncData === 'function') {
+                        syncData();
+                    }
+                } else {
+                    triggerAppAlert('Verification Rejected', data.msg || 'Proof failed verification checks.', '❌');
+                }
+            })
+            .catch((err) => {
+                console.error("Submission failed:", err);
+                triggerAppAlert('Network Drop', 'Handshake error dropping proof packet configuration.', '❌');
+            });
         }
-    })
-    .catch((err) => {
-        console.error("Submission failed:", err);
-        triggerAppAlert('Network Drop', 'Handshake error dropping proof packet configuration.', '❌');
-    });
-}
-function syncData() {
+
+        function syncData() {
             fetch('/admin/user-sync-data', { headers: { 'Accept': 'application/json' } })
                 .then(res => res.json())
                 .then(payload => {
@@ -414,6 +415,24 @@ function syncData() {
                         planExpiresAtTimestamp = payload.user.planExpiresAt || '';
                         planStartedAtTimestamp = payload.user.planActivatedAt || '';
 
+// --- DYNAMICALLY REGISTER PROMO PLANS INTO THE TELEMETRY DICTIONARY ---
+if (currentPlanDaysId && currentPlanDaysId !== 'None') {
+    const rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
+    const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 2;
+    
+    // Sanitize the name: If the backend sends the duration digit "2" as the plan name, make it "2 Days Promo Plan"
+    let customPlanName = payload.user.currentPlanName || payload.user.activePlanName;
+    if (!customPlanName || customPlanName === currentPlanDaysId) {
+        customPlanName = `${durationVal} Days Promo Plan`;
+    }
+    
+    METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
+        name: customPlanName,
+        multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
+        duration: parseInt(durationVal)
+    };
+}
+
                         updateCurrencyDisplay();
                         updateFrozenBannerVisualState();
                         updateWithdrawActionTriggerButton();
@@ -437,91 +456,87 @@ function syncData() {
         }
 
         function runRealtimeYieldTickerEngine() {
-            if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
-                document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
-                        <span class="text-2xl opacity-40">📊</span>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
-                    </div>`;
-                return;
-            }
-            if (window.isEnginePausedByAdmin) {
-                const activePlanMeta = METRIC_PLAN_TIER_DICT[currentPlanDaysId];
-                document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
-                        <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
-                        <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
-                            <div>
-                                <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
-                                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanMeta.name}</h4>
-                            </div>
-                        </div>
-                        <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
-                    </div>`;
-                return;
-            }
-
-            const activePlanMeta = METRIC_PLAN_TIER_DICT[currentPlanDaysId];
-            const nowTimestamp = new Date().getTime();
-            const startTimestamp = new Date(planStartedAtTimestamp).getTime();
-            const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
-
-            const totalPlanRuntimeMs = endTimestamp - startTimestamp;
-            const elapsedPlanRuntimeMs = nowTimestamp - startTimestamp;
-            const totalProfitUSD = baseAssetBalanceUSD * (activePlanMeta.multiplier - 1);
-
-            let visualAccruedIncrementalValueUSD = 0;
-            if (elapsedPlanRuntimeMs > 0 && totalPlanRuntimeMs > 0) {
-                visualAccruedIncrementalValueUSD = (elapsedPlanRuntimeMs / totalPlanRuntimeMs) * totalProfitUSD;
-                if (visualAccruedIncrementalValueUSD > totalProfitUSD) visualAccruedIncrementalValueUSD = totalProfitUSD;
-            }
-
-            let dynamicTotalStreamingDisplayUSD = baseAssetBalanceUSD + visualAccruedIncrementalValueUSD;
-            const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
-
-            const daysRemaining = Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24));
-            const hoursRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutesRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60));
-            const secondsRemaining = Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000);
-
-            const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
-            const computedDynamicExchangeBalance = (dynamicTotalStreamingDisplayUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
-
-            document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
-                `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
-                `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
-
-            if (absoluteRemainingDistanceMs <= 0) {
-                document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
-                        <span class="text-xl">🎉</span>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
-                    </div>`;
-                return;
-            }
-
-            document.getElementById('dynamicPlanContainer').innerHTML = `
-                <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
-                    <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
-                        <div>
-                            <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
-                            <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanMeta.name}</h4>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
-                            <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+${currentSelectedCurrencyKey === 'USD' ? '$' : ''}${(visualAccruedIncrementalValueUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
-                        </div>
+    if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !planStartedAtTimestamp) {
+        document.getElementById('dynamicPlanContainer').innerHTML = `
+            <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
+                <span class="text-2xl opacity-40">📊</span>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
+                <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
+            </div>`;
+        return;
+    }
+    if (window.isEnginePausedByAdmin) {
+        document.getElementById('dynamicPlanContainer').innerHTML = `
+            <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
+                <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
+                <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                    <div>
+                        <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">Promo Plan</h4>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 text-center font-mono">
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
-                    </div>
-                </div>`;
-        }
+                </div>
+                <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
+            </div>`;
+        return;
+    }
+
+    const nowTimestamp = new Date().getTime();
+    const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
+
+    // 1. DYNAMIC MATH: Subtract the $20 baseline investment to isolate only the accrued profit
+    const startingPrincipal = 20.00;
+    const visualAccruedIncrementalValueUSD = Math.max(0, baseAssetBalanceUSD - startingPrincipal); 
+
+    // 2. The total balance to display is simply the actual backend balance
+    let dynamicTotalStreamingDisplayUSD = baseAssetBalanceUSD;
+    const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
+
+    const daysRemaining = Math.max(0, Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24)));
+    const hoursRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+    const minutesRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60)));
+    const secondsRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000));
+
+    const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
+    const computedDynamicExchangeBalance = (dynamicTotalStreamingDisplayUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
+
+    document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
+        `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
+        `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
+
+    if (absoluteRemainingDistanceMs <= 0) {
+        document.getElementById('dynamicPlanContainer').innerHTML = `
+            <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
+                <span class="text-xl">🎉</span>
+                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
+                <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
+            </div>`;
+        return;
+    }
+
+    const planNameDisplay = (METRIC_PLAN_TIER_DICT[currentPlanDaysId] && METRIC_PLAN_TIER_DICT[currentPlanDaysId].name) 
+    ? METRIC_PLAN_TIER_DICT[currentPlanDaysId].name 
+    : `${currentPlanDaysId} Days Promo Plan`;
+
+    document.getElementById('dynamicPlanContainer').innerHTML = `
+        <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
+            <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                <div>
+                    <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${planNameDisplay}</h4>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
+                    <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+${currentSelectedCurrencyKey === 'USD' ? '$' : ''}${(visualAccruedIncrementalValueUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-2 text-center font-mono">
+                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
+                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
+                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
+                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
+            </div>
+        </div>`;
+}
 
         UX_CURRENCY_PREF = localStorage.getItem("userConsoleCurrency") || "USD";
         document.getElementById('currencySelector').value = UX_CURRENCY_PREF;

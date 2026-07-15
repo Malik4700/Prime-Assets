@@ -39,6 +39,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const superadminRoutes = require('./routes/superadmin');
 const referralRoutes = require('./routes/referrals');
+const promoPlanRoutes = require('./routes/promoPlanRoutes');
 const ReferralCode = require('./models/ReferralCode');
 
 const app = express();
@@ -168,6 +169,7 @@ app.use('/admin/referral-manager', referralRoutes);
 app.use('/admin', adminRoutes);
 app.use('/superadmin', superadminRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/promo-plans', promoPlanRoutes);
 
 // Landing Page Route
 app.get('/', (req, res) => {
@@ -198,13 +200,29 @@ app.get('/user/home', requireLogin, async (req, res) => {
     }
 });
 
-// 2. User Plans Page Route (Fixes Cannot GET /user/plans)
+// 2. User Plans Page Route - Integrated with Promo Plans
 app.get('/user/plans', requireLogin, async (req, res) => {
     try {
         const freshUser = await User.findById(req.session.userId);
         if (!freshUser) return res.redirect('/auth/login');
-        res.render('user/Plans', { user: freshUser });
+
+        // Fetch active promo plans from the database
+        const PromoPlan = require('./models/PromoPlan');
+        const now = new Date();
+        const activePromos = await PromoPlan.find({});
+
+        // Filter out plans that have hit their purchase cap
+        const availablePromos = activePromos.filter(promo => 
+            promo.maxPurchases === null || promo.purchaseCount < promo.maxPurchases
+        );
+
+        // Render the plans view, passing both the user and the promo plans
+        res.render('user/Plans', { 
+            user: freshUser, 
+            promoPlans: availablePromos 
+        });
     } catch (err) {
+        console.error("Error loading user plans page:", err);
         res.redirect('/user/home');
     }
 });

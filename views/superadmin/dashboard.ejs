@@ -21,12 +21,11 @@
         .inner-glow {
             box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), 0 4px 20px 0 rgba(0, 0, 0, 0.3);
         }
-        .super-view { display: none; }
-        .super-view.active { display: block; }
     </style>
 </head>
 <body class="bg-[#020f0c] text-slate-100 min-h-screen flex font-sans antialiased select-none">
 
+    <!-- Sidebar Navigation -->
     <aside class="w-64 bg-slate-950/80 backdrop-blur-xl text-slate-300 flex flex-col fixed inset-y-0 left-0 z-30 shadow-2xl border-r border-emerald-500/10">
         <div class="px-6 py-5 border-b border-emerald-500/10 flex flex-col space-y-2">
             <div class="flex items-center justify-between">
@@ -40,16 +39,19 @@
         </div>
 
         <nav class="flex-grow p-4 space-y-1.5 font-medium text-xs tracking-wide uppercase">
-    <button onclick="switchSuperView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold">
-        <span>🛡️</span><span>Global Ledger</span>
-    </button>
-    <button onclick="switchSuperView('admins')" id="nav-admins" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
-        <span>💼</span><span>Manage Manager Nodes</span>
-    </button>
-    <button onclick="switchSuperView('broadcast')" id="nav-broadcast" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
-        <span>📢</span><span>Broadcast Desk</span>
-    </button>
-</nav>
+            <button onclick="switchSuperView('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold">
+                <span>🛡️</span><span>Global Ledger</span>
+            </button>
+            <button onclick="switchSuperView('admins')" id="nav-admins" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+                <span>💼</span><span>Manage Manager Nodes</span>
+            </button>
+            <button onclick="switchSuperView('broadcast')" id="nav-broadcast" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+                <span>📢</span><span>Broadcast Desk</span>
+            </button>
+            <button onclick="switchSuperView('promos')" id="nav-promos" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400">
+                <span>🏷️</span><span>Promo Campaigns</span>
+            </button>
+        </nav>
 
         <div class="px-4 pb-2">
             <form action="/superadmin/toggle-maintenance" method="POST" onsubmit="return confirm('WARNING: Triggering global maintenance updates structural access flags across all sub-nodes. Proceed?');">
@@ -66,6 +68,7 @@
         </div>
     </aside>
 
+    <!-- Main Workspace -->
     <main class="flex-grow pl-64 min-h-screen flex flex-col">
         <header class="bg-slate-950/40 backdrop-blur-md border-b border-emerald-500/10 h-16 flex items-center justify-between px-8 sticky top-0 z-20">
             <h2 id="viewTitle" class="text-xs font-black uppercase tracking-wider text-slate-400">Global Ledger</h2>
@@ -78,9 +81,11 @@
             </div>
         </header>
 
-        <div class="p-8 flex-grow max-w-6xl w-full mx-auto space-y-8">
+        <!-- Expanded container to take up full-width display -->
+        <div class="p-8 flex-grow w-full space-y-8">
 
-            <section id="view-overview" class="super-view active space-y-6">
+            <!-- VIEW 1: Overview Panel -->
+            <section id="view-overview" class="super-view space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div class="premium-glass inner-glow p-5 rounded-2xl shadow-sm">
                         <p class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-1">Global System Deposit Pool</p>
@@ -102,7 +107,6 @@
                     </div>
                 </div>
 
-                
                 <div class="space-y-3">
                     <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Hierarchical Node Tier Breakdowns</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -147,7 +151,8 @@
                 </div>
             </section>
 
-            <section id="view-admins" class="super-view space-y-6">
+            <!-- VIEW 2: Managers Panel -->
+            <section id="view-admins" class="super-view space-y-6 hidden">
                 <div class="premium-glass inner-glow rounded-3xl p-6 shadow-sm">
                     <div class="flex justify-between items-center mb-6">
                         <div>
@@ -221,90 +226,166 @@
                 </div>
             </section>
 
-            <section id="view-broadcast" class="super-view space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto items-start">
-        
-        <div class="premium-glass inner-glow p-6 rounded-[24px] space-y-4">
-            <div class="flex items-center space-x-3 border-b border-white/5 pb-3">
-                <span class="text-xl">⚡</span>
-                <div>
-                    <h2 class="font-black text-sm tracking-wide uppercase text-white">Broadcast Desk</h2>
-                    <p class="text-[10px] text-slate-400 font-mono">Push text & images directly to user dashboards</p>
-                </div>
-            </div>
-
-            <form action="/superadmin/create-update" method="POST" enctype="multipart/form-data" class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Update Message</label>
-                    <textarea name="text" rows="4" class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500/30 font-sans resize-none" placeholder="Type platform updates or system adjustments here..."></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Attach Image Asset (Optional)</label>
-                    <div class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 flex items-center justify-between">
-                        <input type="file" name="image" accept="image/*" class="text-xs text-slate-400 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-mono file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer w-full" />
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition uppercase">
-                    Publish Platform Update
-                </button>
-            </form>
-        </div>
-
-        <div class="space-y-4">
-            <div class="flex items-center space-x-2 pl-1">
-                <span class="text-sm">👁️</span>
-                <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">Live Dashboard Feed Mirror</h4>
-            </div>
-
-            <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                <% if (typeof updates !== 'undefined' && updates.length > 0) { %>
-                    <% updates.forEach(item => { %>
-                        <div class="premium-glass inner-glow p-5 rounded-[24px] space-y-4 relative group">
-                            
-                            <form action="/superadmin/edit-update/<%= item._id %>" method="POST" class="space-y-3">
-                                <textarea name="text" rows="3" required class="w-full bg-black/30 border border-transparent focus:border-emerald-500/20 rounded-xl p-2 text-xs text-slate-200 focus:outline-none font-sans resize-none transition-all"><%= item.text %></textarea>
-                                
-                                <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                                    <span class="text-[8px] text-slate-500 font-mono">
-                                        <%= new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }) %>
-                                    </span>
-                                    <button type="submit" class="text-[9px] font-mono text-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-wider bg-emerald-500/5 px-2.5 py-1 rounded border border-emerald-500/10 transition">
-                                        💾 Save Edit
-                                    </button>
-                                </div>
-                            </form>
-
-                            <% if (item.imageUrl) { %>
-    <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 max-h-40">
-        <img src="<%= item.imageUrl %>" alt="Asset mirror" class="w-full h-full object-cover opacity-80" />
-    </div>
-<% } %>
-
-                            <div class="absolute top-2 right-4">
-                                <form action="/superadmin/delete-update/<%= item._id %>" method="POST" onsubmit="return confirm('CRITICAL CORE ACTION: Are you absolutely positive you want to completely erase this systemic update row item permanently?');">
-                                    <button type="submit" class="text-slate-600 hover:text-rose-400 text-xs p-1 transition-all duration-200" title="Delete Update Row">
-                                        ❌
-                                    </button>
-                                </form>
+            <!-- VIEW 3: Broadcast Desk Panel -->
+            <section id="view-broadcast" class="super-view space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full items-start">
+                    <div class="premium-glass inner-glow p-6 rounded-[24px] space-y-4">
+                        <div class="flex items-center space-x-3 border-b border-white/5 pb-3">
+                            <span class="text-xl">⚡</span>
+                            <div>
+                                <h2 class="font-black text-sm tracking-wide uppercase text-white">Broadcast Desk</h2>
+                                <p class="text-[10px] text-slate-400 font-mono">Push text & images directly to user dashboards</p>
                             </div>
                         </div>
-                    <% }); %>
-                <% } else { %>
-                    <div class="premium-glass inner-glow p-8 text-center text-xs text-slate-500 font-mono rounded-[24px]">
-                        No active records populated down database pipelines.
-                    </div>
-                <% } %>
-            </div>
-        </div>
 
-    </div>
-</section>
+                        <form action="/superadmin/create-update" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Update Message</label>
+                                <textarea name="text" rows="4" class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500/30 font-sans resize-none" placeholder="Type platform updates or system adjustments here..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">Attach Image Asset (Optional)</label>
+                                <div class="w-full bg-[#061814] border border-emerald-500/10 rounded-xl p-3 flex items-center justify-between">
+                                    <input type="file" name="image" accept="image/*" class="text-xs text-slate-400 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[10px] file:font-mono file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer w-full" />
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs tracking-wider transition uppercase">
+                                Publish Platform Update
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 pl-1">
+                            <span class="text-sm">👁️</span>
+                            <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">Live Dashboard Feed Mirror</h4>
+                        </div>
+
+                        <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                            <% if (typeof updates !== 'undefined' && updates.length > 0) { %>
+                                <% updates.forEach(item => { %>
+                                    <div class="premium-glass inner-glow p-5 rounded-[24px] space-y-4 relative group">
+                                        
+                                        <form action="/superadmin/edit-update/<%= item._id %>" method="POST" class="space-y-3">
+                                            <textarea name="text" rows="3" required class="w-full bg-black/30 border border-transparent focus:border-emerald-500/20 rounded-xl p-2 text-xs text-slate-200 focus:outline-none font-sans resize-none transition-all"><%= item.text %></textarea>
+                                            
+                                            <div class="flex items-center justify-between pt-2 border-t border-white/5">
+                                                <span class="text-[8px] text-slate-500 font-mono">
+                                                    <%= new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }) %>
+                                                </span>
+                                                <button type="submit" class="text-[9px] font-mono text-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-wider bg-emerald-500/5 px-2.5 py-1 rounded border border-emerald-500/10 transition">
+                                                    💾 Save Edit
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        <% if (item.imageUrl) { %>
+                                            <div class="w-full rounded-xl overflow-hidden border border-white/5 bg-slate-900/40 max-h-40">
+                                                <img src="<%= item.imageUrl %>" alt="Asset mirror" class="w-full h-full object-cover opacity-80" />
+                                            </div>
+                                        <% } %>
+
+                                        <div class="absolute top-2 right-4">
+                                            <form action="/superadmin/delete-update/<%= item._id %>" method="POST" onsubmit="return confirm('CRITICAL CORE ACTION: Are you absolutely positive you want to completely erase this systemic update row item permanently?');">
+                                                <button type="submit" class="text-slate-600 hover:text-rose-400 text-xs p-1 transition-all duration-200" title="Delete Update Row">
+                                                    ❌
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="premium-glass inner-glow p-8 text-center text-xs text-slate-500 font-mono rounded-[24px]">
+                                    No active records populated down database pipelines.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: Promo Campaigns Panel -->
+            <section id="view-promos" class="super-view space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+                    <!-- Form Column (Spans 4 of 12 columns) -->
+                    <div class="lg:col-span-4 bg-slate-950/80 border border-emerald-500/20 p-6 rounded-[28px] space-y-6">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-white border-b border-emerald-500/10 pb-3">Create Promo Plan</h2>
+                        <form id="createPromoForm" class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Plan Name</label>
+                                <input type="text" name="name" required placeholder="e.g., Golden Week" class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Description</label>
+                                <textarea name="description" required placeholder="Description..." class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none h-16 resize-none"></textarea>
+                            </div>
+                            <!-- FIXED: Added Start and End DateTime Inputs to resolve the 'Invalid Date' bug -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Start Date</label>
+                                    <input type="datetime-local" name="startDate" required class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">End Date</label>
+                                    <input type="datetime-local" name="endDate" required class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Price ($)</label>
+                                    <input type="number" step="0.01" name="price" required placeholder="100.00" class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Duration (Days)</label>
+                                    <input type="number" name="durationDays" required placeholder="15" class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Profit Benefit (%)</label>
+                                    <input type="number" name="profitPercent" id="profitPercent" placeholder="e.g., 25" class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">Max Purchases (Optional)</label>
+                                    <input type="number" name="maxPurchases" placeholder="Unlimited" class="w-full bg-[#030f0c] border border-emerald-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black uppercase tracking-wider rounded-xl transition">
+                                Publish Campaign
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Table Column (Spans 8 of 12 columns) -->
+                    <div class="lg:col-span-8 bg-slate-950/80 border border-emerald-500/20 p-6 rounded-[28px] space-y-6 w-full">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-white border-b border-emerald-500/10 pb-3">Active Promotional Configurations</h2>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-emerald-500/10 text-slate-400 font-mono text-[10px] uppercase">
+                                        <th class="py-3 px-2">Name</th>
+                                        <th class="py-3 px-2">Price</th>
+                                        <th class="py-3 px-2">Window</th>
+                                        <th class="py-3 px-2">Claims</th>
+                                        <th class="py-3 px-2 text-center">Status</th>
+                                        <th class="py-3 px-2 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promoPlanTableBody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
         </div>
     </main>
 
+    <!-- Modal Layout: Provision Manager -->
     <div id="createAdminModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md hidden items-center justify-center z-50 p-4">
         <div class="premium-glass inner-glow rounded-[28px] p-6 max-w-md w-full shadow-2xl space-y-4 text-slate-100">
             <div class="flex justify-between items-center border-b border-emerald-500/10 pb-3">
@@ -341,55 +422,166 @@
         </div>
     </div>
 
+    <!-- Interface Logic Scripts -->
     <script>
-        function switchSuperView(viewId) {
-            document.querySelectorAll('.super-view').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${viewId}`).classList.add('active');
+        // Modal State Controls
+        function openCreateAdminModal() {
+            const modal = document.getElementById('createAdminModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
 
-            const labels = { overview: 'Global Ledger', admins: 'Manage Manager Nodes' };
-            document.getElementById('viewTitle').innerText = labels[viewId];
+        // Close Admin Modal
+        function closeCreateAdminModal() {
+            const modal = document.getElementById('createAdminModal');
+            if (modal) {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }
+        }
 
-            const items = ['overview', 'admins'];
-            items.forEach(i => {
-                const btn = document.getElementById(`nav-${i}`);
-                if(i === viewId) {
-                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-white bg-emerald-600 transition-all font-bold";
+        // SPA Dynamic View Switcher
+        function switchSuperView(viewName) {
+            // Unify dynamic view components via Tailwind visibility classes
+            document.querySelectorAll('.super-view').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            const targetView = document.getElementById(`view-${viewName}`);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+            }
+
+            // Reset navigation button state styling
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('bg-emerald-600', 'font-bold', 'text-white');
+                btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+            });
+
+            // Highlight target sidebar button link
+            const targetBtn = document.getElementById(`nav-${viewName}`);
+            if (targetBtn) {
+                targetBtn.classList.add('bg-emerald-600', 'font-bold', 'text-white');
+                targetBtn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+            }
+
+            // Update top bar title header context dynamically
+            const viewTitles = {
+                overview: "Global Ledger",
+                admins: "Manage Manager Nodes",
+                broadcast: "Broadcast Desk",
+                promos: "Promo Campaigns"
+            };
+            const titleElement = document.getElementById('viewTitle');
+            if (titleElement) {
+                titleElement.innerText = viewTitles[viewName] || "Superadmin Workspace";
+            }
+
+            // Load promo active databases if entering the campaign section
+            if (viewName === 'promos') {
+                loadPromoPlans();
+            }
+        }
+
+        // Active Promos API Fetcher
+        async function loadPromoPlans() {
+            try {
+                const response = await fetch('/superadmin/api/promo-plans/active');
+                const result = await response.json();
+                const tbody = document.getElementById('promoPlanTableBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+
+                if (result.success && result.data.length > 0) {
+                    result.data.forEach(plan => {
+                        // FIXED: Added safe fallbacks for missing/invalid start and end dates
+                        const start = plan.startDate ? new Date(plan.startDate).toLocaleString() : 'N/A';
+                        const end = plan.endDate ? new Date(plan.endDate).toLocaleString() : 'N/A';
+                        
+                        // FIXED: Safely track claim counts using fallbacks if purchaseCount/purchased properties are uninitialized
+                        const currentClaimsCount = typeof plan.purchased !== 'undefined' ? plan.purchased : (typeof plan.purchaseCount !== 'undefined' ? plan.purchaseCount : 0);
+                        const limitStr = plan.maxPurchases ? `${currentClaimsCount} / ${plan.maxPurchases}` : 'Unlimited';
+                        
+                        tbody.innerHTML += `
+                            <tr class="border-b border-emerald-500/5 hover:bg-emerald-500/5 transition">
+                                <td class="py-4 px-2 font-bold text-white">${plan.name}<br><span class="text-[10px] font-normal text-slate-400 font-mono">${plan.durationDays} Days</span></td>
+                                <td class="py-4 px-2 font-mono text-emerald-400">$${plan.price}</td>
+                                <td class="py-4 px-2 text-[10px] text-slate-400 font-mono">${start}<br>to<br>${end}</td>
+                                <td class="py-4 px-2 font-mono text-slate-300">${limitStr}</td>
+                                <td class="py-4 px-2 text-center">
+                                    <span class="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
+                                </td>
+                                <td class="py-4 px-2 text-right">
+                                    <button onclick="deletePromoPlan('${plan._id}')" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 font-bold text-[10px] px-2.5 py-1.5 rounded-xl border border-rose-500/20 transition-all uppercase tracking-wider">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
                 } else {
-                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition-all text-slate-400";
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500 font-mono">No active promotional campaigns found.</td></tr>`;
+                }
+            } catch (err) {
+                console.error('Error fetching plans:', err);
+            }
+        }
+
+        // Handler to delete promo plans
+        async function deletePromoPlan(id) {
+            if (!confirm('Are you absolutely sure you want to permanently delete this promotional plan?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/superadmin/api/promo-plans/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Promo Plan successfully deleted!');
+                    loadPromoPlans(); // Refresh the table list immediately
+                } else {
+                    alert('Error deleting plan: ' + result.msg);
+                }
+            } catch (err) {
+                alert('Connection failure parsing payload.');
+            }
+        }
+
+        // Promo Creation Form Submission Handler
+        const promoForm = document.getElementById('createPromoForm');
+        if (promoForm) {
+            promoForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('/superadmin/api/promo-plans', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Promo Plan successfully created!');
+                        e.target.reset();
+                        loadPromoPlans();
+                    } else {
+                        alert('Error: ' + result.msg);
+                    }
+                } catch (err) {
+                    alert('Connection failure parsing payload.');
                 }
             });
         }
-
-        function openCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('hidden', 'flex'); }
-        function closeCreateAdminModal() { document.getElementById('createAdminModal').classList.replace('flex', 'hidden'); }
-    function switchSuperView(viewName) {
-    // 1. Hide all view panels
-    document.querySelectorAll('.super-view').forEach(view => view.classList.remove('active'));
-    
-    // 2. Show the active view panel
-    document.getElementById(`view-${viewName}`).classList.add('active');
-
-    // 3. Reset sidebar link backgrounds to default
-    document.querySelectorAll('nav button').forEach(btn => {
-        btn.classList.remove('bg-emerald-600', 'text-white');
-        btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
-    });
-
-    // 4. Highlight current link tab
-    const activeBtn = document.getElementById(`nav-${viewName}`);
-    if (activeBtn) {
-        activeBtn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
-        activeBtn.classList.add('bg-emerald-600', 'text-white');
-    }
-
-    // 5. Update header title text context
-    const viewTitles = {
-        overview: "Global Ledger",
-        admins: "Manage Manager Nodes",
-        broadcast: "Broadcast Desk"
-    };
-    document.getElementById('viewTitle').innerText = viewTitles[viewName] || "Superadmin Workspace";
-}
     </script>
 </body>
 </html>

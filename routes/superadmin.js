@@ -4,12 +4,20 @@ const User = require('../models/User');
 const Superadmin = require('../models/Superadmin');
 const bcrypt = require('bcryptjs'); 
 const Update = require('../models/Update');
+const PromoPlan = require('../models/PromoPlan'); // <-- IMPORT YOUR PROMO MODEL
 const multer = require('multer');
 const path = require('path');
 
 // 🟢 INITIALIZE MEMORY STORAGE MIDDLEWARE HERE
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+const isAnyAdmin = (req, res, next) => {
+    if (req.session && (req.session.role === 'admin' || req.session.role === 'superadmin' || (req.session.user && req.session.user.role === 'superadmin'))) {
+        return next();
+    }
+    return res.status(403).json({ success: false, msg: "Access Denied: Admin authorization required." });
+};
 
 // 1. Render the Superadmin Dashboard with data
 router.get('/dashboard', async (req, res) => {
@@ -51,6 +59,16 @@ router.get('/dashboard', async (req, res) => {
     }
 });
 
+// @route   GET /superadmin/promo-plans
+// @desc    Render the Promo Plan management screen
+router.get('/promo-plans', (req, res) => {
+    // Session check: Ensure only active superadmins can view this page
+    if (req.session && req.session.user && req.session.user.role === 'superadmin') {
+        return res.render('superadmin/promoPlans');
+    }
+    // If not authenticated as superadmin, kick back to login
+    return res.redirect('/superadmin/login');
+});
 
 // 2. UPDATE THIS: Process the image buffer as a Base64 string
 router.post('/create-update', upload.single('image'), async (req, res) => {
@@ -191,6 +209,91 @@ router.post('/delete-account/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Error dropping target account from schema.");
+    }
+});
+
+// ==========================================
+// 🚀 PROMO CAMPAIGN API ENDPOINTS
+// ==========================================
+
+// POST /superadmin/api/promo-plans (Create a new promo plan)
+router.post('/api/promo-plans', async (req, res) => {
+    try {
+        const isAuthorizedAdmin = req.session && (
+            req.session.role === 'admin' || 
+            req.session.role === 'superadmin' || 
+            (req.session.user && req.session.user.role === 'superadmin')
+        );
+
+        if (!isAuthorizedAdmin) {
+            return res.status(403).json({ success: false, msg: "Access Denied: Admin authority required." });
+        }
+
+        // Destructure profitPercent and remove startDate/endDate
+        const { name, description, price, durationDays, profitPercent, maxPurchases } = req.body;
+
+        const newPromo = new PromoPlan({
+            name,
+            description,
+            price: Number(price),
+            durationDays: Number(durationDays),
+            profitPercent: Number(profitPercent), // Save the profit percentage
+            maxPurchases: maxPurchases ? Number(maxPurchases) : null
+        });
+
+        await newPromo.save();
+        res.status(201).json({ success: true, data: newPromo });
+    } catch (err) {
+        console.error("Error creating promo plan:", err);
+        res.status(500).json({ success: false, msg: "Database writing failure." });
+    }
+});
+
+// GET /superadmin/api/promo-plans/active
+router.get('/api/promo-plans/active', async (req, res) => {
+    try {
+        // Broaden the check to accept standard admin sessions and superadmin sessions
+        const isAuthorizedAdmin = req.session && (
+            req.session.role === 'admin' || 
+            req.session.role === 'superadmin' || 
+            (req.session.user && req.session.user.role === 'superadmin')
+        );
+
+        if (!isAuthorizedAdmin) {
+            return res.status(403).json({ success: false, msg: "Access Denied: Admin authority required." });
+        }
+
+        const activePlans = await PromoPlan.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: activePlans });
+    } catch (err) {
+        console.error("Error fetching promo plans:", err);
+        res.status(500).json({ success: false, msg: "Database reading failure." });
+    }
+});
+
+// DELETE /superadmin/api/promo-plans/delete/:id
+router.delete('/api/promo-plans/delete/:id', async (req, res) => {
+    try {
+        const isAuthorizedAdmin = req.session && (
+            req.session.role === 'admin' || 
+            req.session.role === 'superadmin' || 
+            (req.session.user && req.session.user.role === 'superadmin')
+        );
+
+        if (!isAuthorizedAdmin) {
+            return res.status(403).json({ success: false, msg: "Access Denied: Admin authority required." });
+        }
+
+        const deletedPlan = await PromoPlan.findByIdAndDelete(req.params.id);
+        
+        if (!deletedPlan) {
+            return res.status(404).json({ success: false, msg: "Promotional plan not found." });
+        }
+
+        res.status(200).json({ success: true, msg: "Plan deleted successfully." });
+    } catch (err) {
+        console.error("Error deleting promo plan:", err);
+        res.status(500).json({ success: false, msg: "Database deletion failure." });
     }
 });
 

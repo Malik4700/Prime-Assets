@@ -76,7 +76,7 @@
             </div>
         </div>
 
-        <div class="relative">
+        <div class="relative space-y-6">
             <% 
                 const hasActivePlan = (typeof user !== 'undefined' && user.currentPlan && user.currentPlan !== 'None' && user.currentPlan !== '');
                 const isPendingRequest = (typeof user !== 'undefined' && user.planRequestStatus === 'pending');
@@ -84,7 +84,7 @@
             %>
 
             <% if (isPendingRequest) { %>
-                <div class="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
                     <div class="flex items-center gap-3">
                         <span class="text-lg animate-pulse">📩</span>
                         <div>
@@ -95,6 +95,61 @@
                 </div>
             <% } %>
 
+            <!-- Promotional Plans Section (Always Displays on Top) -->
+            <% if (typeof promoPlans !== 'undefined' && promoPlans.length > 0) { %>
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h2 class="text-xs font-black uppercase tracking-widest text-amber-400 font-mono">Limited Time Special Offers</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <% promoPlans.forEach(plan => { %>
+                            <div class="relative overflow-hidden bg-slate-950/80 border-2 border-amber-500 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all duration-300 backdrop-blur-xl">
+                                
+                                <!-- Decorative Promo Badge -->
+                                <div class="absolute -top-2.2 right-4 bg-amber-500 text-slate-950 font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md">
+                                    PROMO OFFER
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-3">
+                                        <div>
+                                            <span class="text-[9px] uppercase font-black tracking-widest text-amber-400 block mb-0.5">Special Tier</span>
+                                            <h3 class="font-black text-xs text-white tracking-wide uppercase"><%= plan.name %></h3>
+                                        </div>
+                                        <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/30"><%= plan.durationDays %> Days</span>
+                                    </div>
+
+                                    <p class="text-[10px] text-slate-400 font-medium leading-relaxed mb-4"><%= plan.description %></p>
+
+                                    <!-- Price and Profit Section -->
+                                    <div class="grid grid-cols-2 gap-3 bg-slate-950/30 border border-slate-900 p-3 rounded-xl mb-4">
+                                        <div>
+                                            <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">Activation Cost</span>
+                                            <span class="text-xs font-black text-white font-mono">$<%= (plan.price || 0).toFixed(2) %> USD</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">EOP Benefit</span>
+                                            <span class="text-xs font-black text-amber-400 text-glow font-mono"><%= plan.profitPercent %>% Total Profit</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Buy Action Button -->
+                                <button 
+                                    onclick="requestPromoBuy('<%= plan._id %>', '<%= plan.name %>', '<%= plan.price %>', '<%= plan.durationDays %>')"
+                                    class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-[11px] font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-amber-500/20 active:scale-95 transform"
+                                >
+                                    Acquire Promo Tier
+                                </button>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Standard Static Tiers Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <% 
                 const staticTiers = [
@@ -249,6 +304,62 @@
             confirmationSuccessAction = null;
             selectedPlanMetadata = null;
         }
+
+        async function requestPromoBuy(planId, planName, planCost, planDays) {
+    // 1. Check balance parameters first (similar to standard buy)
+    if (currentUserBalance < parseFloat(planCost)) {
+        triggerAppAlert(
+            'Balance Insufficient', 
+            `Your current balance ($${currentUserBalance.toFixed(2)} USD) is below the required threshold of $${parseFloat(planCost).toFixed(2)} USD.`, 
+            '⚠️'
+        );
+        return;
+    }
+
+    // 2. Cache the metadata variables in your existing modal memory
+    selectedPlanMetadata = { 
+        planId: planDays, 
+        planName: `PROMO: ${planName}`, 
+        planCost: parseFloat(planCost) 
+    };
+
+    // 3. Trigger your beautiful built-in confirm modal
+    openConfirmModal(
+        `Are you sure you want to deploy the promotional plan "${planName}" for $${parseFloat(planCost).toFixed(2)} USD?`, 
+        executePromoTransactionCommit
+    );
+}
+
+// 4. Submit the transaction through the custom handler
+async function executePromoTransactionCommit() {
+    if (!selectedPlanMetadata) return;
+    const { planId, planName, planCost } = selectedPlanMetadata;
+
+    try {
+        const response = await fetch('/user/request-plan-buy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                planDays: planId,
+                planName: planName,
+                planCost: planCost
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            triggerAppAlert('Request Dispatched', result.msg || 'Promo request submitted successfully! Waiting for admin approval.', '📩');
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            triggerAppAlert('Transaction Refused', result.msg || 'Transaction declined.', '❌');
+        }
+    } catch (err) {
+        console.error(err);
+        triggerAppAlert('Network Drop', 'Network connection failure logging transaction.', '❌');
+    } finally {
+        selectedPlanMetadata = null;
+    }
+}
     </script>
 </body>
 </html>

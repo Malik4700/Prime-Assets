@@ -35,6 +35,18 @@ const isUser = (req, res, next) => {
     return res.status(401).json({ success: false, msg: 'Unauthorized session matrix.' });
 };
 
+// GET /admin/api/promo-plans/active
+router.get('/api/promo-plans/active', isAdmin, async (req, res) => {
+    try {
+        const PromoPlan = require('../models/PromoPlan');
+        const activePlans = await PromoPlan.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: activePlans });
+    } catch (err) {
+        console.error("Error fetching promo plans:", err);
+        res.status(500).json({ success: false, msg: "Database reading failure." });
+    }
+});
+
 // GET Route: Render the Updates Page and clear the dynamic notification dot
 router.get('/updates', async (req, res) => {
     // Force redirect to login if session doesn't exist
