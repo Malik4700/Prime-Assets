@@ -1,4 +1,3 @@
-
 // 1. Load environment variables
 require('dotenv').config();
 
@@ -187,7 +186,7 @@ const requireLogin = (req, res, next) => {
     next();
 };
 
-// ==================== NEW FIXED USER ROUTES ====================
+// ==================== USER ROUTES ====================
 
 // 1. User Home Page Route
 app.get('/user/home', requireLogin, async (req, res) => {
@@ -208,7 +207,6 @@ app.get('/user/plans', requireLogin, async (req, res) => {
 
         // Fetch active promo plans from the database
         const PromoPlan = require('./models/PromoPlan');
-        const now = new Date();
         const activePromos = await PromoPlan.find({});
 
         // Filter out plans that have hit their purchase cap
@@ -455,6 +453,15 @@ app.post('/admin/toggle-block', requireLogin, async (req, res) => {
         }
         targetUser.isBlocked = !targetUser.isBlocked;
         await targetUser.save();
+
+        // Push block update immediately to user via WebSockets
+        if (io) {
+            io.to(targetUser._id.toString()).emit('balanceUpdate', {
+                balance: targetUser.balance,
+                isBlocked: targetUser.isBlocked
+            });
+        }
+
         console.log(`[SYSTEM AUTH MATRIX] Admin (${req.session.adminCode}) changed block flag for ${targetUser.username} to: ${targetUser.isBlocked}`);
         return res.json({ success: true, msg: `User successfully ${targetUser.isBlocked ? 'blocked' : 'unblocked'}.` });
     } catch (err) {
@@ -470,7 +477,7 @@ app.get('/admin/api/users-plans-queue', requireLogin, async (req, res) => {
             return res.status(403).json({ success: false, msg: 'Unauthorized workspace access.' });
         }
         
-        // 🟢 FIXED: Filter users so admins ONLY see plans belonging to their own assigned promo code node
+        // Filter users so admins ONLY see plans belonging to their own assigned promo code node
         const adminManagerCode = req.session.adminCode.toUpperCase().trim();
         const systemUsers = await User.find({
             assignedAdminCode: adminManagerCode,
@@ -508,6 +515,15 @@ app.post('/admin/plans/toggle-engine-state', requireLogin, async (req, res) => {
             return res.status(400).json({ success: false, msg: 'Unknown system directive payload command configuration.' });
         }
         await systemUser.save();
+
+        // Push dynamic live pause command visual update immediately to user
+        if (io) {
+            io.to(systemUser._id.toString()).emit('balanceUpdate', {
+                balance: systemUser.balance,
+                isPlanPaused: systemUser.isPlanPaused
+            });
+        }
+
         console.log(`[ENGINE MATRIX STATE CHANGE] Admin (${req.session.adminCode}) changed running tier state for user ${systemUser.username} to: ${command.toUpperCase()}`);
         return res.json({ 
             success: true, 
@@ -519,7 +535,7 @@ app.post('/admin/plans/toggle-engine-state', requireLogin, async (req, res) => {
     }
 });
 
-// Admin Plans Queue Action Handler (Approve or Decline Pending User Plans) - UPDATED FOR COMPLEX TIER PARSING
+// Admin Plans Queue Action Handler (Approve or Decline Pending User Plans)
 app.post('/admin/plans/action', requireLogin, async (req, res) => {
     try {
         if (!req.session.adminCode) {
@@ -546,9 +562,20 @@ app.post('/admin/plans/action', requireLogin, async (req, res) => {
                 return res.status(400).json({ success: false, msg: 'Ledger failure: Target balance is below minimum activation threshold.' });
             }
 
-            // Securely parse variable composite strings (like "30_premium", "60_platinum") cleanly into integer days
             const rawDaysToken = targetUser.requestedPlanDays || '15';
-            const daysToExpiration = parseInt(rawDaysToken.split('_')[0]) || 15;
+            let daysToExpiration = parseInt(rawDaysToken.split('_')[0]);
+
+            // If it's a custom promotional plan and not a static number token, look up its properties dynamically
+            let isPromo = false;
+            const PromoPlan = require('./models/PromoPlan');
+            const promo = await PromoPlan.findOne({ name: targetUser.requestedPlanName });
+            
+            if (promo) {
+                daysToExpiration = promo.durationDays;
+                isPromo = true;
+            } else if (isNaN(daysToExpiration)) {
+                daysToExpiration = 15; // Clean fallback
+            }
 
             const expirationCalculatedDate = new Date();
             expirationCalculatedDate.setDate(expirationCalculatedDate.getDate() + daysToExpiration);
@@ -562,6 +589,12 @@ app.post('/admin/plans/action', requireLogin, async (req, res) => {
             // TRACK LIFETIME PURCHASE OF BEGINNER PLAN UPON VALID ADMINISTRATOR APPROVAL
             if (rawDaysToken === '7') {
                 targetUser.hasBoughtBeginner = true;
+            }
+
+            // If it was a promotional plan, increment its systemic global purchase counter
+            if (isPromo && promo) {
+                promo.purchaseCount = (promo.purchaseCount || 0) + 1;
+                await promo.save();
             }
 
             // Clear temporary staging variables
@@ -580,6 +613,16 @@ app.post('/admin/plans/action', requireLogin, async (req, res) => {
         }
 
         await targetUser.save();
+
+        // Notify client of plan changes via WebSockets
+        if (io) {
+            io.to(targetUser._id.toString()).emit('balanceUpdate', {
+                balance: targetUser.balance,
+                currentPlan: targetUser.currentPlan,
+                planExpiresAt: targetUser.planExpiresAt
+            });
+        }
+
         console.log(`[QUEUE MANAGEMENT SYSTEM] Admin (${req.session.adminCode}) executed action [${action.toUpperCase()}] for user: ${targetUser.username}`);
 
         return res.json({ 
@@ -604,17 +647,23 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// Real-Time WebSockets
+// Real-Time WebSockets Handshake
 io.on('connection', (socket) => {
-    socket.on('joinUserRoom', (userId) => { socket.join(userId); });
+    // User joins a private room mapped to their document identifier
+    socket.on('joinUserRoom', (userId) => { 
+        if (userId) {
+            socket.join(userId.toString()); 
+        }
+    });
     socket.on('disconnect', () => {});
 });
 
-// ==================== AUTOMATED BACKGROUND YIELD ENGINE ====================
-// UPDATED FOR DYNAMIC ACCRUAL RATES BASED ON PLAN PROFIT RATIOS
+/// ==================== AUTOMATED BACKGROUND YIELD ENGINE ====================
+// UPDATED FOR REALTIME WS BALANCE EMISSION
 setInterval(async () => {
     try {
         const now = new Date();
+        const PromoPlan = require('./models/PromoPlan');
         
         const activeUsers = await User.find({
             currentPlan: { $exists: true, $ne: 'None', $ne: '' },
@@ -622,32 +671,42 @@ setInterval(async () => {
             isPlanPaused: false
         });
 
+        // Pre-fetch promo plans to minimize DB queries in the loop
+        const promos = await PromoPlan.find({});
+
         for (const user of activeUsers) {
             const principal = parseFloat(user.balance) || 0;
             if (principal <= 0) continue; 
 
-            // Calculate precise custom dynamic yield rates matching layout specifications
             let totalProfitPercentage = 0.20; // Default fallback to 20%
             let totalPlanDurationDays = 15;   // Default fallback to 15 Days
 
             const tierTokenId = user.currentPlan;
-            if (tierTokenId === '7') {
-                totalProfitPercentage = 0.20; // 20%
+
+            // Check if user's running plan matches a promotional plan's duration token/identifier
+            const matchedPromo = promos.find(p => p.name === tierTokenId || String(p.durationDays) === tierTokenId);
+
+            if (matchedPromo) {
+                // If profitPercent is stored as a whole number (e.g. 35 for 35%), divide by 100
+                totalProfitPercentage = matchedPromo.profitPercent > 1 ? matchedPromo.profitPercent / 100 : matchedPromo.profitPercent;
+                totalPlanDurationDays = matchedPromo.durationDays;
+            } else if (tierTokenId === '7') {
+                totalProfitPercentage = 0.20; 
                 totalPlanDurationDays = 7;
             } else if (tierTokenId === '15') {
-                totalProfitPercentage = 0.20; // 20%
+                totalProfitPercentage = 0.20; 
                 totalPlanDurationDays = 15;
             } else if (tierTokenId === '30') {
-                totalProfitPercentage = 0.25; // 25%
+                totalProfitPercentage = 0.25; 
                 totalPlanDurationDays = 30;
             } else if (tierTokenId === '30_premium') {
-                totalProfitPercentage = 0.30; // 30%
+                totalProfitPercentage = 0.30; 
                 totalPlanDurationDays = 30;
             } else if (tierTokenId === '60') {
-                totalProfitPercentage = 0.40; // 40%
+                totalProfitPercentage = 0.40; 
                 totalPlanDurationDays = 60;
             } else if (tierTokenId === '60_platinum') {
-                totalProfitPercentage = 0.50; // 50%
+                totalProfitPercentage = 0.50; 
                 totalPlanDurationDays = 60;
             }
 
@@ -663,6 +722,7 @@ setInterval(async () => {
 
             await user.save();
             
+            // EMIT REAL-TIME METRICS IMMEDIATELY
             if (io) {
                 io.to(user._id.toString()).emit('balanceUpdate', {
                     balance: user.balance,
