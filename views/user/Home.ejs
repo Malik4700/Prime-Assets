@@ -218,15 +218,7 @@
     </nav>
 
     <script>
-        let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
-        const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67 };
-        
-        let isAccountFrozen = "<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'true' : 'false' %>" === 'true';
-        let isWithdrawRestrained = "<%= (typeof user !== 'undefined' && user && user.isWithdrawRestrained) ? 'true' : 'false' %>" === 'true';
-        let currentPlanDaysId = "<%= (typeof user !== 'undefined' && user && user.currentPlan) ? user.currentPlan : 'None' %>";
-        let planExpiresAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planExpiresAt) ? user.planExpiresAt : '' %>";
-        let planStartedAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planActivatedAt) ? user.planActivatedAt : '' %>";
-
+        // 1. Core Hardcoded Tiers (These remain completely untouched and static)
         const METRIC_PLAN_TIER_DICT = {
             "7": { name: "7 Days Beginner Plan", multiplier: 1.20, duration: 7 },          // 20% Profit
             "15": { name: "15 Days Standard Plan", multiplier: 1.20, duration: 15 },       // 20% Profit
@@ -235,6 +227,15 @@
             "60": { name: "60 Days Royal Wealth Plan", multiplier: 1.40, duration: 60 },    // 40% Profit
             "60_platinum": { name: "60 Days Platinum Elite Plan", multiplier: 1.50, duration: 60 } // 50% Profit
         };
+
+        let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
+        const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67 };
+        
+        let isAccountFrozen = "<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'true' : 'false' %>" === 'true';
+        let isWithdrawRestrained = "<%= (typeof user !== 'undefined' && user && user.isWithdrawRestrained) ? 'true' : 'false' %>" === 'true';
+        let currentPlanDaysId = "<%= (typeof user !== 'undefined' && user && user.currentPlan) ? user.currentPlan : 'None' %>";
+        let planExpiresAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planExpiresAt) ? user.planExpiresAt : '' %>";
+        let planStartedAtTimestamp = "<%= (typeof user !== 'undefined' && user && user.planActivatedAt) ? user.planActivatedAt : '' %>";
 
         let mockWithdrawalLedgerHistory = [];
         let confirmationSuccessAction = null;
@@ -409,22 +410,29 @@
                         isWithdrawRestrained = !!payload.user.isWithdrawRestrained;
                         currentPlanDaysId = payload.user.currentPlan || 'None';
                         planExpiresAtTimestamp = payload.user.planExpiresAt || '';
-                        planStartedAtTimestamp = payload.user.planActivatedAt || '';
+                        
+                        // FIX: Ensure start time is always updated during background sync
+                        planStartedAtTimestamp = payload.user.planActivatedAt || payload.user.planStartedAt || '';
 
+                        // 2. Dynamic Registering for Admin-created Custom Tiers
                         if (currentPlanDaysId && currentPlanDaysId !== 'None') {
-                            const rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
-                            const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 2;
-                            
-                            let customPlanName = payload.user.currentPlanName || payload.user.activePlanName;
-                            if (!customPlanName || customPlanName === currentPlanDaysId) {
-                                customPlanName = `${durationVal} Days Promo Plan`;
+                            // Only add dynamically if it's NOT one of our 6 hardcoded plans
+                            if (!METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
+                                const rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
+                                const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 1;
+                                
+                                let customPlanName = payload.user.currentPlanName || payload.user.activePlanName;
+                                if (!customPlanName || customPlanName === currentPlanDaysId) {
+                                    customPlanName = `${durationVal} Days Promo Plan`;
+                                }
+                                
+                                // Register custom promo details dynamically
+                                METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
+                                    name: customPlanName,
+                                    multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
+                                    duration: parseInt(durationVal)
+                                };
                             }
-                            
-                            METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
-                                name: customPlanName,
-                                multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
-                                duration: parseInt(durationVal)
-                            };
                         }
 
                         updateCurrencyDisplay();
@@ -481,20 +489,16 @@
             const totalPlanRuntimeMs = endTimestamp - startTimestamp;
             const elapsedPlanRuntimeMs = Math.max(0, nowTimestamp - startTimestamp);
 
-            // Fetch dynamic interest multiplier configured for the active plan
-            let planMultiplier = 1.25; 
+            // Fetch dynamic interest multiplier from static or dynamically registered plan
+            let planMultiplier = 1.20; 
             if (METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
                 planMultiplier = METRIC_PLAN_TIER_DICT[currentPlanDaysId].multiplier;
-            } else {
-                if (currentPlanDaysId === '7') planMultiplier = 1.20;
-                if (currentPlanDaysId === '15') planMultiplier = 1.20;
-                if (currentPlanDaysId === '30') planMultiplier = 1.25;
             }
 
             const totalProfitPercent = planMultiplier - 1;
             const progressFraction = totalPlanRuntimeMs > 0 ? Math.min(1, elapsedPlanRuntimeMs / totalPlanRuntimeMs) : 0;
 
-            // DYNAMIC CALCULATION: Extrapolates starting base principal mathematically from your dynamic current balance
+            // Calculate the original starting base balance of the plan mathematically
             const currentGrowthFactor = 1 + (progressFraction * totalProfitPercent);
             const startingPrincipal = currentGrowthFactor > 0 ? (baseAssetBalanceUSD / currentGrowthFactor) : baseAssetBalanceUSD;
             
