@@ -182,40 +182,40 @@
     <%- include('Deposit') %>
 
     <div id="supportGatewayModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
-    <div class="w-full max-w-xs premium-bg-blend border border-emerald-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
-        <span class="text-4xl inline-block">✅</span>
-        <h3 class="text-xs font-black uppercase tracking-wider text-white mt-4">Proof Signature Submitted</h3>
-        <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">Your transaction index signature code has been uploaded to the verification layers. The administration team will verify your transfer metrics shortly.</p>
-        <button onclick="document.getElementById('supportGatewayModal').classList.replace('flex', 'hidden')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
-            Dismiss Confirmation
-        </button>
+        <div class="w-full max-w-xs premium-bg-blend border border-emerald-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
+            <span class="text-4xl inline-block">✅</span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-4">Proof Signature Submitted</h3>
+            <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">Your transaction index signature code has been uploaded to the verification layers. The administration team will verify your transfer metrics shortly.</p>
+            <button onclick="document.getElementById('supportGatewayModal').classList.replace('flex', 'hidden')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+                Dismiss Confirmation
+            </button>
+        </div>
     </div>
-</div>
 
     <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
-    <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
-        <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
-    </a>
-    <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-        <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
-    </a>
-    
-    <a href="/admin/updates" class="relative flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-        <span class="text-xl">🔔</span>
-        <span class="text-[9px] uppercase tracking-wider font-black">Updates</span>
+        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
+            <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
+        </a>
+        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+        </a>
         
-        <% if (hasUnreadUpdates) { %>
-            <span class="absolute top-0 right-2 flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-        <% } %>
-    </a>
+        <a href="/admin/updates" class="relative flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">🔔</span>
+            <span class="text-[9px] uppercase tracking-wider font-black">Updates</span>
+            
+            <% if (typeof hasUnreadUpdates !== 'undefined' && hasUnreadUpdates) { %>
+                <span class="absolute top-0 right-2 flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+            <% } %>
+        </a>
 
-    <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-        <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
-    </a>
-</nav>
+        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
+            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+        </a>
+    </nav>
 
     <script>
         let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
@@ -340,12 +340,10 @@
                     triggerAppAlert('Success', 'Deposit log successfully transmitted to verification node layers!', '✅');
                     document.getElementById('topupTxidInput').value = '';
                     
-                    // Close the topup modal cleanly if the function exists
                     if (typeof toggleTopupModal === 'function') {
                         toggleTopupModal(false);
                     }
                     
-                    // Force a data sync refresh instantly so the new item shows up in the user's log grid
                     if (typeof syncData === 'function') {
                         syncData();
                     }
@@ -370,7 +368,6 @@
                        }
                     }
 
-                    // --- NEW DEPOSIT LOGS RENDERING BLOCK ---
                     if (payload && payload.user && payload.user.deposits) {
                         const historyContainer = document.getElementById('userDepositHistoryContainer');
                         if (historyContainer) {
@@ -378,7 +375,7 @@
                                 historyContainer.innerHTML = `<div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>`;
                             } else {
                                 historyContainer.innerHTML = payload.user.deposits.map(item => {
-                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20"; // pending
+                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20"; 
                                     if (item.status === 'verified') badgeStyle = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
                                     if (item.status === 'rejected') badgeStyle = "text-rose-400 bg-rose-500/10 border-rose-500/20";
 
@@ -401,7 +398,6 @@
                             }
                         }
                     }
-                    // ----------------------------------------
 
                     if (payload && payload.success && payload.user) {
                         if (payload.user.isBlocked) {
@@ -415,23 +411,21 @@
                         planExpiresAtTimestamp = payload.user.planExpiresAt || '';
                         planStartedAtTimestamp = payload.user.planActivatedAt || '';
 
-// --- DYNAMICALLY REGISTER PROMO PLANS INTO THE TELEMETRY DICTIONARY ---
-if (currentPlanDaysId && currentPlanDaysId !== 'None') {
-    const rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
-    const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 2;
-    
-    // Sanitize the name: If the backend sends the duration digit "2" as the plan name, make it "2 Days Promo Plan"
-    let customPlanName = payload.user.currentPlanName || payload.user.activePlanName;
-    if (!customPlanName || customPlanName === currentPlanDaysId) {
-        customPlanName = `${durationVal} Days Promo Plan`;
-    }
-    
-    METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
-        name: customPlanName,
-        multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
-        duration: parseInt(durationVal)
-    };
-}
+                        if (currentPlanDaysId && currentPlanDaysId !== 'None') {
+                            const rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
+                            const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 2;
+                            
+                            let customPlanName = payload.user.currentPlanName || payload.user.activePlanName;
+                            if (!customPlanName || customPlanName === currentPlanDaysId) {
+                                customPlanName = `${durationVal} Days Promo Plan`;
+                            }
+                            
+                            METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
+                                name: customPlanName,
+                                multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
+                                duration: parseInt(durationVal)
+                            };
+                        }
 
                         updateCurrencyDisplay();
                         updateFrozenBannerVisualState();
@@ -456,89 +450,108 @@ if (currentPlanDaysId && currentPlanDaysId !== 'None') {
         }
 
         function runRealtimeYieldTickerEngine() {
-    if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !planStartedAtTimestamp) {
-        document.getElementById('dynamicPlanContainer').innerHTML = `
-            <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
-                <span class="text-2xl opacity-40">📊</span>
-                <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
-                <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
-            </div>`;
-        return;
-    }
-    if (window.isEnginePausedByAdmin) {
-        document.getElementById('dynamicPlanContainer').innerHTML = `
-            <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
-                <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
-                <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
-                    <div>
-                        <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">Promo Plan</h4>
+            if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !planStartedAtTimestamp) {
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
+                        <span class="text-2xl opacity-40">📊</span>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
+                    </div>`;
+                return;
+            }
+            if (window.isEnginePausedByAdmin) {
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
+                        <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
+                        <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                            <div>
+                                <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">Promo Plan</h4>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
+                    </div>`;
+                return;
+            }
+
+            const nowTimestamp = new Date().getTime();
+            const startTimestamp = new Date(planStartedAtTimestamp).getTime();
+            const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
+
+            const totalPlanRuntimeMs = endTimestamp - startTimestamp;
+            const elapsedPlanRuntimeMs = Math.max(0, nowTimestamp - startTimestamp);
+
+            // Fetch dynamic interest multiplier configured for the active plan
+            let planMultiplier = 1.25; 
+            if (METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
+                planMultiplier = METRIC_PLAN_TIER_DICT[currentPlanDaysId].multiplier;
+            } else {
+                if (currentPlanDaysId === '7') planMultiplier = 1.20;
+                if (currentPlanDaysId === '15') planMultiplier = 1.20;
+                if (currentPlanDaysId === '30') planMultiplier = 1.25;
+            }
+
+            const totalProfitPercent = planMultiplier - 1;
+            const progressFraction = totalPlanRuntimeMs > 0 ? Math.min(1, elapsedPlanRuntimeMs / totalPlanRuntimeMs) : 0;
+
+            // DYNAMIC CALCULATION: Extrapolates starting base principal mathematically from your dynamic current balance
+            const currentGrowthFactor = 1 + (progressFraction * totalProfitPercent);
+            const startingPrincipal = currentGrowthFactor > 0 ? (baseAssetBalanceUSD / currentGrowthFactor) : baseAssetBalanceUSD;
+            
+            // Accrued real profit yield
+            const visualAccruedIncrementalValueUSD = Math.max(0, baseAssetBalanceUSD - startingPrincipal);
+
+            let dynamicTotalStreamingDisplayUSD = baseAssetBalanceUSD;
+            const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
+
+            const daysRemaining = Math.max(0, Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24)));
+            const hoursRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+            const minutesRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60)));
+            const secondsRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000));
+
+            const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
+            const computedDynamicExchangeBalance = (dynamicTotalStreamingDisplayUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
+
+            document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
+                `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
+                `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
+
+            if (absoluteRemainingDistanceMs <= 0) {
+                document.getElementById('dynamicPlanContainer').innerHTML = `
+                    <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
+                        <span class="text-xl">🎉</span>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
+                    </div>`;
+                return;
+            }
+
+            const planNameDisplay = (METRIC_PLAN_TIER_DICT[currentPlanDaysId] && METRIC_PLAN_TIER_DICT[currentPlanDaysId].name) 
+                ? METRIC_PLAN_TIER_DICT[currentPlanDaysId].name 
+                : `${currentPlanDaysId} Days Promo Plan`;
+
+            document.getElementById('dynamicPlanContainer').innerHTML = `
+                <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
+                    <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                        <div>
+                            <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${planNameDisplay}</h4>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
+                            <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+${currentSelectedCurrencyKey === 'USD' ? '$' : ''}${(visualAccruedIncrementalValueUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
+                        </div>
                     </div>
-                </div>
-                <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
-            </div>`;
-        return;
-    }
+                    <div class="grid grid-cols-4 gap-2 text-center font-mono">
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
+                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
+                    </div>
+                </div>`;
+        }
 
-    const nowTimestamp = new Date().getTime();
-    const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
-
-    // 1. DYNAMIC MATH: Subtract the $20 baseline investment to isolate only the accrued profit
-    const startingPrincipal = 20.00;
-    const visualAccruedIncrementalValueUSD = Math.max(0, baseAssetBalanceUSD - startingPrincipal); 
-
-    // 2. The total balance to display is simply the actual backend balance
-    let dynamicTotalStreamingDisplayUSD = baseAssetBalanceUSD;
-    const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
-
-    const daysRemaining = Math.max(0, Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24)));
-    const hoursRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
-    const minutesRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60)));
-    const secondsRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000));
-
-    const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
-    const computedDynamicExchangeBalance = (dynamicTotalStreamingDisplayUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
-
-    document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
-        `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
-        `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
-
-    if (absoluteRemainingDistanceMs <= 0) {
-        document.getElementById('dynamicPlanContainer').innerHTML = `
-            <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
-                <span class="text-xl">🎉</span>
-                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
-            </div>`;
-        return;
-    }
-
-    const planNameDisplay = (METRIC_PLAN_TIER_DICT[currentPlanDaysId] && METRIC_PLAN_TIER_DICT[currentPlanDaysId].name) 
-    ? METRIC_PLAN_TIER_DICT[currentPlanDaysId].name 
-    : `${currentPlanDaysId} Days Promo Plan`;
-
-    document.getElementById('dynamicPlanContainer').innerHTML = `
-        <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
-            <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
-                <div>
-                    <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
-                    <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${planNameDisplay}</h4>
-                </div>
-                <div class="text-right">
-                    <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
-                    <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+${currentSelectedCurrencyKey === 'USD' ? '$' : ''}${(visualAccruedIncrementalValueUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
-                </div>
-            </div>
-            <div class="grid grid-cols-4 gap-2 text-center font-mono">
-                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
-                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
-                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
-                <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
-            </div>
-        </div>`;
-}
-
-        UX_CURRENCY_PREF = localStorage.getItem("userConsoleCurrency") || "USD";
+        let UX_CURRENCY_PREF = localStorage.getItem("userConsoleCurrency") || "USD";
         document.getElementById('currencySelector').value = UX_CURRENCY_PREF;
 
         function updateCurrencyDisplay() {
@@ -562,7 +575,7 @@ if (currentPlanDaysId && currentPlanDaysId !== 'None') {
             if (isWithdrawRestrained) {
                 targetPlaceholder.innerHTML = `
                     <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold rounded-xl p-3 text-center uppercase tracking-wider">
-                        🔒Due to heavy taffic on this account, withdraw is closed, refer 1 person to get referral bonus and to unlock the withdraw process instantly.
+                        🔒Due to heavy traffic on this account, withdraw is closed, refer 1 person to get referral bonus and to unlock the withdraw process instantly.
                     </div>`;
             } else {
                 targetPlaceholder.innerHTML = `
