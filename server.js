@@ -659,70 +659,57 @@ io.on('connection', (socket) => {
 });
 
 /// ==================== AUTOMATED BACKGROUND YIELD ENGINE ====================
-// UPDATED FOR REALTIME WS BALANCE EMISSION
+// UPDATED: Process yields for active plans AND auto-reset expired plans
 setInterval(async () => {
     try {
         const now = new Date();
         const PromoPlan = require('./models/PromoPlan');
         
+        // --- 1. YIELD CALCULATION FOR ACTIVE PLANS ---
         const activeUsers = await User.find({
             currentPlan: { $exists: true, $ne: 'None', $ne: '' },
             planExpiresAt: { $gt: now }, 
             isPlanPaused: false
         });
 
-        // Pre-fetch promo plans to minimize DB queries in the loop
         const promos = await PromoPlan.find({});
 
         for (const user of activeUsers) {
             const principal = parseFloat(user.balance) || 0;
             if (principal <= 0) continue; 
 
-            let totalProfitPercentage = 0.20; // Default fallback to 20%
-            let totalPlanDurationDays = 15;   // Default fallback to 15 Days
+            let totalProfitPercentage = 0.20; 
+            let totalPlanDurationDays = 15;   
 
             const tierTokenId = user.currentPlan;
-
-            // Check if user's running plan matches a promotional plan's duration token/identifier
             const matchedPromo = promos.find(p => p.name === tierTokenId || String(p.durationDays) === tierTokenId);
 
             if (matchedPromo) {
-                // If profitPercent is stored as a whole number (e.g. 35 for 35%), divide by 100
                 totalProfitPercentage = matchedPromo.profitPercent > 1 ? matchedPromo.profitPercent / 100 : matchedPromo.profitPercent;
                 totalPlanDurationDays = matchedPromo.durationDays;
             } else if (tierTokenId === '7') {
-                totalProfitPercentage = 0.20; 
-                totalPlanDurationDays = 7;
+                totalProfitPercentage = 0.20; totalPlanDurationDays = 7;
             } else if (tierTokenId === '15') {
-                totalProfitPercentage = 0.20; 
-                totalPlanDurationDays = 15;
+                totalProfitPercentage = 0.20; totalPlanDurationDays = 15;
             } else if (tierTokenId === '30') {
-                totalProfitPercentage = 0.25; 
-                totalPlanDurationDays = 30;
+                totalProfitPercentage = 0.25; totalPlanDurationDays = 30;
             } else if (tierTokenId === '30_premium') {
-                totalProfitPercentage = 0.30; 
-                totalPlanDurationDays = 30;
+                totalProfitPercentage = 0.30; totalPlanDurationDays = 30;
             } else if (tierTokenId === '60') {
-                totalProfitPercentage = 0.40; 
-                totalPlanDurationDays = 60;
+                totalProfitPercentage = 0.40; totalPlanDurationDays = 60;
             } else if (tierTokenId === '60_platinum') {
-                totalProfitPercentage = 0.50; 
-                totalPlanDurationDays = 60;
+                totalProfitPercentage = 0.50; totalPlanDurationDays = 60;
             }
 
-            // Distribute total profit down to exact per-minute compounding slices
             const dailyReturnRate = totalProfitPercentage / totalPlanDurationDays;
             const returnPerMinute = dailyReturnRate / 1440;
-
             const yieldAccruedIncrement = principal * returnPerMinute;
 
-            // Increment balances cleanly
             user.balance = parseFloat((user.balance + yieldAccruedIncrement).toFixed(6));
             user.accruedYield = parseFloat(((user.accruedYield || 0) + yieldAccruedIncrement).toFixed(6));
 
             await user.save();
             
-            // EMIT REAL-TIME METRICS IMMEDIATELY
             if (io) {
                 io.to(user._id.toString()).emit('balanceUpdate', {
                     balance: user.balance,
@@ -730,6 +717,30 @@ setInterval(async () => {
                 });
             }
         }
+
+        // --- 2. AUTOMATIC PLAN EXPIRATION & RESET ---
+        // Identifies users whose time has passed and resets them to 'None'
+        const expiredUsers = await User.find({
+            currentPlan: { $exists: true, $ne: 'None', $ne: '' },
+            planExpiresAt: { $lte: now }
+        });
+
+        for (const user of expiredUsers) {
+            user.currentPlan = 'None';
+            user.planExpiresAt = '';
+            user.isPlanPaused = false;
+            await user.save();
+            
+            // Notify the client of the reset so UI updates immediately (e.g., enable Withdraw button)
+            if (io) {
+                io.to(user._id.toString()).emit('balanceUpdate', {
+                    currentPlan: 'None',
+                    planExpiresAt: ''
+                });
+            }
+            console.log(`[SYSTEM CLEANUP] Plan expired and reset for user: ${user.username}`);
+        }
+
     } catch (err) {
         console.error('Failure inside automated background yield engine loop:', err);
     }
