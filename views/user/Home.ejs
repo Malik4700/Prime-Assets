@@ -537,42 +537,66 @@
         }
 
         function executeWithdrawalRequestSubmission() {
-            const address = document.getElementById('withdrawAddressInput').value.trim();
-            const amount = parseFloat(document.getElementById('withdrawAmountInput').value);
-            const network = document.getElementById('withdrawNetworkSelector').value;
+    if (typeof isAccountFrozen !== 'undefined' && isAccountFrozen) {
+        triggerAppAlert('Execution Terminated', 'Account is frozen.', '🔒');
+        return;
+    }
+    if (typeof isWithdrawRestrained !== 'undefined' && isWithdrawRestrained) {
+        triggerAppAlert('Execution Terminated', 'Withdrawals restricted.', '🚫');
+        return;
+    }
 
-            if (!address) {
-                triggerAppAlert('Invalid Parameters', 'Please enter a valid target wallet address.', '⚠️');
-                return;
+    const networkSelector = document.getElementById('withdrawNetworkSelector');
+    const addressInput = document.getElementById('withdrawAddressInput');
+    const amountInput = document.getElementById('withdrawAmountInput');
+
+    const network = networkSelector ? networkSelector.value : 'TRC20';
+    const address = addressInput ? addressInput.value.trim() : '';
+    const amount = amountInput ? parseFloat(amountInput.value) : 0;
+
+    if (!address) {
+        triggerAppAlert('Validation Fault', 'Enter a valid target destination address.', '⚠️');
+        return;
+    }
+    if (isNaN(amount) || amount <= 0) {
+        triggerAppAlert('Validation Fault', 'Enter a valid numerical amount.', '⚠️');
+        return;
+    }
+    if (typeof baseAssetBalanceUSD !== 'undefined' && amount > baseAssetBalanceUSD) {
+        triggerAppAlert('Validation Fault', 'Insufficient asset liquidity depth.', '⚠️');
+        return;
+    }
+
+    openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?`, () => {
+        fetch('/admin/request-withdrawal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blockchain: network, address: address, amount: amount })
+        })
+        .then(async res => {
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return res.json();
+            } else {
+                throw new Error(`Server returned status ${res.status}`);
             }
-
-            if (!amount || amount <= 0 || amount > baseAssetBalanceUSD) {
-                triggerAppAlert('Insufficient Funds', 'Specified remittance amount exceeds available capital.', '⚠️');
-                return;
+        })
+        .then(data => {
+            if (data.success) {
+                triggerAppAlert('Request Dispatched', data.msg || 'Outbound remittance sequence initialized.', '✅');
+                if (addressInput) addressInput.value = '';
+                if (amountInput) amountInput.value = '';
+                if (typeof syncData === 'function') syncData();
+            } else {
+                triggerAppAlert('Transfer Error', data.msg || 'Remittance sequence failed.', '🚨');
             }
-
-            openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?`, () => {
-                fetch('/user/withdraw', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ network, address, amount })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        triggerAppAlert('Request Dispatched', 'Outbound remittance sequence initialized.', '✅');
-                        document.getElementById('withdrawAddressInput').value = '';
-                        document.getElementById('withdrawAmountInput').value = '';
-                        syncData();
-                    } else {
-                        triggerAppAlert('Transfer Error', data.message || 'Remittance sequence failed.', '🚨');
-                    }
-                })
-                .catch(err => {
-                    triggerAppAlert('System Error', 'Network request failed.', '🚨');
-                });
-            });
-        }
+        })
+        .catch(err => {
+            console.error('Withdrawal submission error:', err);
+            triggerAppAlert('System Error', 'Network request failed.', '🚨');
+        });
+    });
+}
 
         function renderWithdrawalLedgerStream() {
             const container = document.getElementById('withdrawalHistoryLedgerStream');
