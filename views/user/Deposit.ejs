@@ -14,99 +14,134 @@
                     <option value="TRC20">TRON Network (TRC20)</option>
                     <option value="BEP20">Binance Smart Chain (BEP20)</option>
                     <option value="ERC20">Ethereum Network (ERC20)</option>
-                    <option value="BTC">Bitcoin Network (BTC)</option>
-                    <option value="SOL">Solana Network (SOL)</option>
                 </select>
             </div>
 
-            <div class="bg-black/40 border border-white/10 p-4 rounded-2xl text-center space-y-1">
-                <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Gateway Remittance Target</p>
-                <p id="topupWalletString" class="text-xs font-mono font-bold tracking-tight text-white select-all break-all bg-black/50 p-2.5 rounded-xl border border-white/5 mt-1.5 cursor-pointer" onclick="copyTopupWalletToClipboard()">
-                    Loading active secure node coordinates...
-                </p>
-                <p class="text-[8px] text-slate-400 font-medium pt-1">Click the wallet address string above to instantly save to clipboard.</p>
+            <div class="bg-black/40 border border-white/10 rounded-2xl p-4 text-center space-y-2">
+                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Target Transfer Address</span>
+                <p id="topupWalletString" class="text-xs font-mono font-bold text-white break-all select-all py-1">Loading wallet parameter...</p>
+                <button onclick="copyTopupWalletToClipboard()" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] px-4 py-1.5 rounded-xl uppercase tracking-wider transition-all">Copy Address 📋</button>
             </div>
 
-            <div class="space-y-2">
-                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400">Submit Verification TxID Hash</label>
-                <input type="text" id="topupTxidInput" placeholder="Paste transaction sequence identifier..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+            <div>
+                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Transaction Proof Index (TXID / Hash)</label>
+                <input type="text" id="topupTxidInput" placeholder="Paste generated blockchain TXID code..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
             </div>
-            
-            <button onclick="commitProofTxidVerificationLogSignature()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all uppercase tracking-wider">
-                Transmit Log Order
+
+            <button onclick="submitTopupTxidProof()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-lg transition-all cursor-pointer">
+                Submit Deposit Signature 🚀
             </button>
         </div>
-        <div class="mt-6 pt-4 border-t border-slate-800/60 w-full">
-    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 text-center">Your Deposit Logs History</h4>
-    <div id="userDepositHistoryContainer" class="max-h-32 overflow-y-auto space-y-2 pr-1 custom-scrollbar text-left">
-        <div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>
-    </div>
-</div>
+
+        <div class="border-t border-white/10 pt-4 space-y-2">
+            <h5 class="text-[10px] font-black uppercase tracking-wider text-slate-300">Transaction History Log</h5>
+            <div id="userDepositHistoryContainer" class="max-h-36 overflow-y-auto custom-scroll space-y-2 pr-1">
+                <div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // Global variable tracking all structural wallet arrays assigned by workspace controllers
-    let userAssignedGatewayList = [];
-
-    // Toggles visibility of the top-up module frame
-    function toggleTopupModal(shouldDisplay) {
+    function toggleTopupModal(show) {
         const modal = document.getElementById('topupGatewayModal');
-        if (shouldDisplay) {
+        if (!modal) return;
+        if (show) {
             modal.classList.replace('hidden', 'flex');
-            fetchUserWorkspaceWallets();
+            synchronizeActiveWalletDisplayString();
         } else {
             modal.classList.replace('flex', 'hidden');
         }
     }
 
-    // Fetches live settings endpoints matching the active administrator's workspace
-    async function fetchUserWorkspaceWallets() {
-        const walletText = document.getElementById('topupWalletString');
-        try {
-            // Note: We will define this endpoint path on our user router mapping layer next
-            const response = await fetch('/admin/user-sync-data');
-            if (!response.ok) throw new Error("Gateway mapping node response invalid.");
-            
-            const syncData = await response.json();
-            userAssignedGatewayList = syncData.gateways || [];
-            synchronizeActiveWalletDisplayString();
-        } catch (err) {
-            console.error("Failed to load gateway accounts coordinates:", err);
-            walletText.innerText = "Error tracking target terminal configurations.";
-        }
-    }
+    function submitTopupTxidProof() {
+    const network = document.getElementById('userDepositNetworkSelector').value;
+    const txid = document.getElementById('topupTxidInput').value.trim();
 
-    // Displays the address associated with the chosen dropdown choice
-function synchronizeActiveWalletDisplayString() {
-    const activeNetworkSelection = document.getElementById('userDepositNetworkSelector').value;
-    const targetWalletTextElement = document.getElementById('topupWalletString');
-    
-    // Safely verify if gateways were returned
-    if (!userAssignedGatewayList || userAssignedGatewayList.length === 0) {
-        targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
-        targetWalletTextElement.classList.add('text-rose-400');
+    if (!txid) {
+        if (typeof triggerAppAlert === 'function') {
+            triggerAppAlert('Validation Error', 'Please enter a valid TXID or hash.', '⚠️');
+        } else {
+            alert('Please enter a valid TXID or hash.');
+        }
         return;
     }
 
-    // Find configuration item by seeing if the selection string is contained inside the database string
-    const matchedConfig = userAssignedGatewayList.find(item => {
-        if (!item || !item.blockchain) return false;
-        const dbValue = item.blockchain.toString().toUpperCase();
-        const selectedValue = activeNetworkSelection.toUpperCase();
-        return dbValue.includes(selectedValue) || selectedValue.includes(dbValue);
+    // MATCHED ROUTE: /admin/report-deposit-proof
+    fetch('/admin/report-deposit-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockchain: network, txid: txid })
+    })
+    .then(async res => {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return res.json();
+        } else {
+            throw new Error(`Server returned status ${res.status}`);
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            if (typeof triggerAppAlert === 'function') {
+                triggerAppAlert('Request Sent', 'Your transaction proof has been submitted for review.', '✨');
+            } else {
+                alert('Your transaction proof has been submitted for review.');
+            }
+            document.getElementById('topupTxidInput').value = '';
+            toggleTopupModal(false);
+            if (typeof syncData === 'function') {
+                syncData();
+            }
+        } else {
+            if (typeof triggerAppAlert === 'function') {
+                triggerAppAlert('Request Denied', data.msg || 'Transaction rejected by system.', '❌');
+            } else {
+                alert(data.msg || 'Transaction rejected by system.');
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Deposit submission network failure:', err);
+        if (typeof triggerAppAlert === 'function') {
+            triggerAppAlert('Network Failure', 'Failed to dispatch deposit proof payload.', '❌');
+        } else {
+            alert('Failed to dispatch deposit proof payload.');
+        }
     });
-
-    if (matchedConfig && matchedConfig.address) {
-        targetWalletTextElement.innerText = matchedConfig.address;
-        targetWalletTextElement.classList.remove('text-rose-400');
-    } else {
-        targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
-        targetWalletTextElement.classList.add('text-rose-400');
-    }
 }
 
-    // Saves destination parameters instantly to current client workspace clipboard
+    function synchronizeActiveWalletDisplayString() {
+        const networkSelector = document.getElementById('userDepositNetworkSelector');
+        const targetWalletTextElement = document.getElementById('topupWalletString');
+        
+        if (!networkSelector || !targetWalletTextElement) return;
+
+        const activeNetworkSelection = networkSelector.value;
+        const gatewayList = (typeof userAssignedGatewayList !== 'undefined' && Array.isArray(userAssignedGatewayList)) ? userAssignedGatewayList : [];
+
+        if (gatewayList.length === 0) {
+            targetWalletTextElement.innerText = "No active gateway address found";
+            targetWalletTextElement.classList.add('text-rose-400');
+            return;
+        }
+
+        const matchedConfig = gatewayList.find(item => {
+            if (!item || !item.blockchain) return false;
+            const dbValue = item.blockchain.toString().toUpperCase();
+            const selectedValue = activeNetworkSelection.toUpperCase();
+            return dbValue.includes(selectedValue) || selectedValue.includes(dbValue);
+        });
+
+        if (matchedConfig && matchedConfig.address) {
+            targetWalletTextElement.innerText = matchedConfig.address;
+            targetWalletTextElement.classList.remove('text-rose-400');
+        } else {
+            targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
+            targetWalletTextElement.classList.add('text-rose-400');
+        }
+    }
+
     function copyTopupWalletToClipboard() {
         const addressTextString = document.getElementById('topupWalletString').innerText;
         if (addressTextString.startsWith("No active") || addressTextString.startsWith("Loading")) return;

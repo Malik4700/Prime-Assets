@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Console | PRIME ASSETS HOLDINGS 4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Socket.io Client Library -->
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
@@ -78,7 +77,6 @@
     </header>
 
     <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-5">
-        
         <div class="premium-bg-blend rounded-[32px] p-6 shadow-2xl border border-emerald-500/30 inner-glow relative overflow-hidden">
             <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
             <div class="relative z-10">
@@ -220,7 +218,7 @@
     </nav>
 
     <script>
-        // Initialize Socket.io Client Connection
+     
         const socket = io();
 
         // Listen for realtime balance updates emitted from the backend
@@ -228,7 +226,6 @@
             if (data) {
                 if (typeof data.balance !== 'undefined') {
                     const freshSocketBalance = parseFloat(data.balance);
-                    // Protect running client-side ticker baseline updates from rolling back
                     if (freshSocketBalance > baseAssetBalanceUSD) {
                         baseAssetBalanceUSD = freshSocketBalance;
                     }
@@ -237,25 +234,23 @@
             }
         });
 
-        // 1. Core Hardcoded Tiers (These remain completely untouched and static)
+        // 1. Core Hardcoded Tiers
         const METRIC_PLAN_TIER_DICT = {
-            "7": { name: "7 Days Beginner Plan", multiplier: 1.20, duration: 7 },          // 20% Profit
-            "15": { name: "15 Days Standard Plan", multiplier: 1.20, duration: 15 },       // 20% Profit
-            "30": { name: "30 Days Pro Plan", multiplier: 1.25, duration: 30 },            // 25% Profit
-            "30_premium": { name: "30 Days VIP Elite Plan", multiplier: 1.30, duration: 30 }, // 30% Profit
-            "60": { name: "60 Days Royal Wealth Plan", multiplier: 1.40, duration: 60 },    // 40% Profit
-            "60_platinum": { name: "60 Days Platinum Elite Plan", multiplier: 1.50, duration: 60 } // 50% Profit
+            "7": { name: "7 Days Beginner Plan", multiplier: 1.20, duration: 7 },
+            "15": { name: "15 Days Standard Plan", multiplier: 1.20, duration: 15 },
+            "30": { name: "30 Days Pro Plan", multiplier: 1.25, duration: 30 },
+            "30_premium": { name: "30 Days VIP Elite Plan", multiplier: 1.30, duration: 30 },
+            "60": { name: "60 Days Royal Wealth Plan", multiplier: 1.40, duration: 60 },
+            "60_platinum": { name: "60 Days Platinum Elite Plan", multiplier: 1.50, duration: 60 }
         };
 
         let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
         const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67 };
-        
         let isAccountFrozen = "<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'true' : 'false' %>" === 'true';
         let isWithdrawRestrained = "<%= (typeof user !== 'undefined' && user && user.isWithdrawRestrained) ? 'true' : 'false' %>" === 'true';
         let currentPlanDaysId = "<%= (typeof user !== 'undefined' && user && user.currentPlan) ? user.currentPlan : 'None' %>";
         let planExpiresAtTimestamp = "<%= (typeof user !== 'undefined' && user && (user.planExpiresAt || user.expiresAt)) ? (user.planExpiresAt || user.expiresAt) : '' %>";
         let planStartedAtTimestamp = "<%= (typeof user !== 'undefined' && user && (user.planActivatedAt || user.planStartedAt || user.createdAt)) ? (user.planActivatedAt || user.planStartedAt || user.createdAt) : '' %>";
-
         let mockWithdrawalLedgerHistory = [];
         let confirmationSuccessAction = null;
 
@@ -273,10 +268,10 @@
                 .then(res => res.json())
                 .then(payload => {
                     if (payload && payload.gateways) {
-                       userAssignedGatewayList = payload.gateways;
-                       if (typeof synchronizeActiveWalletDisplayString === 'function') {
-                           synchronizeActiveWalletDisplayString();
-                       }
+                        userAssignedGatewayList = payload.gateways;
+                        if (typeof synchronizeActiveWalletDisplayString === 'function') {
+                            synchronizeActiveWalletDisplayString();
+                        }
                     }
 
                     if (payload && payload.user && payload.user.deposits) {
@@ -286,14 +281,12 @@
                                 historyContainer.innerHTML = `<div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>`;
                             } else {
                                 historyContainer.innerHTML = payload.user.deposits.map(item => {
-                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20"; 
+                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20";
                                     if (item.status === 'verified') badgeStyle = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
                                     if (item.status === 'rejected') badgeStyle = "text-rose-400 bg-rose-500/10 border-rose-500/20";
-
                                     const displayTxid = item.txid && item.txid.length > 12 
                                         ? `${item.txid.substring(0, 6)}...${item.txid.substring(item.txid.length - 6)}` 
                                         : (item.txid || 'N/A');
-
                                     return `
                                         <div class="flex items-center justify-between border border-slate-800/50 bg-slate-900/40 p-2.5 rounded-xl text-[11px] font-mono mb-2">
                                             <div class="flex flex-col gap-0.5">
@@ -316,34 +309,28 @@
                             return;
                         }
 
-                        // --- PROTECTED TICKER ENGINE STATES MATCH ---
                         const prevPlanId = currentPlanDaysId;
                         const prevPlanStart = planStartedAtTimestamp;
                         const prevPlanEnd = planExpiresAtTimestamp;
-
                         const freshDbBalance = parseFloat(payload.user.balance) || 0;
-
                         if (freshDbBalance > baseAssetBalanceUSD) {
                             baseAssetBalanceUSD = freshDbBalance;
                         }
-                        
+
                         isAccountFrozen = !!payload.user.isFrozen;
                         isWithdrawRestrained = !!payload.user.isWithdrawRestrained;
-                        
                         currentPlanDaysId = payload.user.currentPlan || prevPlanId || 'None';
                         planExpiresAtTimestamp = payload.user.planExpiresAt || payload.user.expiresAt || prevPlanEnd || '';
                         planStartedAtTimestamp = payload.user.planActivatedAt || payload.user.planStartedAt || payload.user.createdAt || prevPlanStart || '';
 
                         if (currentPlanDaysId && currentPlanDaysId !== 'None') {
                             if (!METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
-                                // Fallback checking is now completely robust
                                 let rawProfitPercent = payload.user.currentPlanProfitPercent || payload.user.profitPercent || payload.user.activePlanProfitPercent || 0;
                                 const durationVal = payload.user.currentPlanDuration || payload.user.durationDays || payload.user.activePlanDuration || parseInt(currentPlanDaysId) || 1;
-                                
-                                // SAFE PROFIT PERCENT FALLBACK: If rawProfitPercent is 0 or undefined, apply logical fallbacks based on duration
+
                                 if (!rawProfitPercent || parseFloat(rawProfitPercent) <= 0) {
                                     const parsedDays = parseInt(durationVal);
-                                    if (parsedDays === 1) rawProfitPercent = 20; // Default: 20% profit for 1-day plans
+                                    if (parsedDays === 1) rawProfitPercent = 20;
                                     else if (parsedDays <= 7) rawProfitPercent = 20;
                                     else if (parsedDays <= 15) rawProfitPercent = 20;
                                     else if (parsedDays <= 30) rawProfitPercent = 25;
@@ -355,7 +342,7 @@
                                 if (!customPlanName || customPlanName === currentPlanDaysId) {
                                     customPlanName = `${durationVal} Days Promo Plan`;
                                 }
-                                
+
                                 METRIC_PLAN_TIER_DICT[currentPlanDaysId] = {
                                     name: customPlanName,
                                     multiplier: 1 + (parseFloat(rawProfitPercent) / 100),
@@ -383,7 +370,9 @@
                         }
                     }
                 })
-                .catch((err) => { console.error("Sync telemetry failure:", err); });
+                .catch((err) => {
+                    console.error("Sync telemetry failure:", err);
+                });
         }
 
         function runRealtimeYieldTickerEngine() {
@@ -396,189 +385,199 @@
                     </div>`;
                 return;
             }
+
             if (window.isEnginePausedByAdmin) {
                 document.getElementById('dynamicPlanContainer').innerHTML = `
                     <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
                         <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
                         <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
                             <div>
-                                <span class="text-[8px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Engine Suspended</span>
-                                <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">Promo Plan</h4>
+                                <span class="text-[8px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">Engine Paused</span>
+                                <h3 class="text-sm font-black uppercase tracking-wider text-white mt-1">Yield Generation Suspended</h3>
                             </div>
                         </div>
-                        <p class="text-[11px] text-amber-300 font-medium leading-relaxed">The distribution engine is temporarily held by security desks. Per-second incremental yields are frozen until restored by the workspace administrator.</p>
+                        <p class="text-[10px] text-amber-200/70">System yields are temporarily halted by administrator command.</p>
                     </div>`;
                 return;
             }
 
-            const nowTimestamp = new Date().getTime();
-            const startTimestamp = new Date(planStartedAtTimestamp).getTime();
-            const endTimestamp = new Date(planExpiresAtTimestamp).getTime();
+            const activePlanConfig = METRIC_PLAN_TIER_DICT[currentPlanDaysId] || { name: `${currentPlanDaysId} Days Tier`, multiplier: 1.20, duration: parseInt(currentPlanDaysId) || 7 };
+            const startTimeMs = new Date(planStartedAtTimestamp).getTime();
+            const totalDurationMs = activePlanConfig.duration * 24 * 60 * 60 * 1000;
+            const endTimeMs = planExpiresAtTimestamp ? new Date(planExpiresAtTimestamp).getTime() : (startTimeMs + totalDurationMs);
+            const nowTimeMs = Date.now();
 
-            const totalPlanRuntimeMs = endTimestamp - startTimestamp;
-            const elapsedPlanRuntimeMs = Math.max(0, nowTimestamp - startTimestamp);
+            let timeElapsedMs = Math.max(0, nowTimeMs - startTimeMs);
+            let progressFraction = Math.min(1.0, timeElapsedMs / totalDurationMs);
+            let percentDone = (progressFraction * 100).toFixed(2);
 
-            let planMultiplier = 1.20; // Fallback defaults to 20%
-            
-            if (METRIC_PLAN_TIER_DICT[currentPlanDaysId]) {
-                planMultiplier = METRIC_PLAN_TIER_DICT[currentPlanDaysId].multiplier;
-            } else {
-                const planIdStr = String(currentPlanDaysId).toLowerCase();
-                if (planIdStr.includes("1") || planIdStr === "1") {
-                    planMultiplier = 1.20; 
-                }
-            }
+            let remainingMs = Math.max(0, endTimeMs - nowTimeMs);
+            let daysRem = Math.floor(remainingMs / (1000 * 60 * 60 * 24));
+            let hoursRem = Math.floor((remainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minsRem = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+            let secsRem = Math.floor((remainingMs % (1000 * 60)) / 1000);
 
-            const totalProfitPercent = planMultiplier - 1; // 0.20
-            const progressFraction = totalPlanRuntimeMs > 0 ? Math.min(1, elapsedPlanRuntimeMs / totalPlanRuntimeMs) : 0;
+            let countdownText = `${daysRem}d ${hoursRem}h ${minsRem}m ${secsRem}s`;
+            if (remainingMs <= 0) countdownText = "Contract Cycle Matured";
 
-            // BACKWARD PRINCIPAL RECOVERY WITH SECONDS-BASED DYNAMIC LIVE INCREMENTS
-            const baseAssetBalance = parseFloat(baseAssetBalanceUSD) || 0;
-            const dbPassedFraction = Math.min(1, Math.max(0, (new Date().getTime() - startTimestamp) / totalPlanRuntimeMs));
-            const databaseGrowthFactor = 1 + (dbPassedFraction * totalProfitPercent);
-            
-            // Calculate original principal
-            const calculatedOriginalPrincipal = baseAssetBalance / databaseGrowthFactor;
+            let initialPrincipalUSD = baseAssetBalanceUSD / (1 + (progressFraction * (activePlanConfig.multiplier - 1)));
+            let liveAccruedBalanceUSD = initialPrincipalUSD * (1 + (progressFraction * (activePlanConfig.multiplier - 1)));
+            let projectedProfitUSD = (initialPrincipalUSD * activePlanConfig.multiplier) - initialPrincipalUSD;
 
-            // Live yield progression
-            const liveAccruedProfitUSD = calculatedOriginalPrincipal * (progressFraction * totalProfitPercent);
-            const liveDynamicDisplayBalanceUSD = calculatedOriginalPrincipal + liveAccruedProfitUSD;
-
-            const absoluteRemainingDistanceMs = endTimestamp - nowTimestamp;
-
-            const daysRemaining = Math.max(0, Math.floor(absoluteRemainingDistanceMs / (1000 * 60 * 60 * 24)));
-            const hoursRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
-            const minutesRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60 * 60)) / (1000 * 60)));
-            const secondsRemaining = Math.max(0, Math.floor((absoluteRemainingDistanceMs % (1000 * 60)) / 1000));
-
-            const currentSelectedCurrencyKey = document.getElementById('currencySelector').value;
-            const computedDynamicExchangeBalance = (liveDynamicDisplayBalanceUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4);
-
-            document.getElementById('balanceDisplay').innerText = currentSelectedCurrencyKey === 'USD' ? 
-                `$${parseFloat(computedDynamicExchangeBalance).toFixed(2)} USD` : 
-                `${parseFloat(computedDynamicExchangeBalance).toFixed(2)} ${currentSelectedCurrencyKey}`;
-
-            if (absoluteRemainingDistanceMs <= 0) {
-                document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-emerald-500/30 p-5 rounded-[24px] shadow-xl text-center">
-                        <span class="text-xl">🎉</span>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1">Contract Execution Complete</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Yield maturity achieved successfully.</p>
-                    </div>`;
-                return;
-            }
-
-            const planNameDisplay = (METRIC_PLAN_TIER_DICT[currentPlanDaysId] && METRIC_PLAN_TIER_DICT[currentPlanDaysId].name) 
-                ? METRIC_PLAN_TIER_DICT[currentPlanDaysId].name 
-                : `${currentPlanDaysId} Days Promo Plan`;
+            baseAssetBalanceUSD = liveAccruedBalanceUSD;
+            updateCurrencyDisplay();
 
             document.getElementById('dynamicPlanContainer').innerHTML = `
-                <div class="premium-glass rounded-[24px] p-5 shadow-2xl border border-white/10 inner-glow relative overflow-hidden">
+                <div class="premium-glass border-emerald-500/40 p-5 rounded-[28px] shadow-2xl relative overflow-hidden inner-glow">
                     <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
                         <div>
-                            <span class="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Active Plan</span>
-                            <h4 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${planNameDisplay}</h4>
+                            <span class="text-[8px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">Active Contract Engine</span>
+                            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanConfig.name}</h3>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[9px] text-slate-400 block font-medium uppercase tracking-widest">Live Profit</span>
-                            <span class="text-xl font-mono font-black text-emerald-400 text-glow animate-pulse">+$${(liveAccruedProfitUSD * FX_MATRIX[currentSelectedCurrencyKey]).toFixed(4)}</span>
-                        </div>
+                        <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-lg animate-pulse">${percentDone}% Completed</span>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 text-center font-mono">
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${daysRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Days</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${hoursRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Hours</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${minutesRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Mins</span></div>
-                        <div class="bg-black/30 rounded-xl p-2 border border-white/5"><span class="block text-sm font-black text-white">${secondsRemaining}</span><span class="text-[7px] text-slate-500 uppercase tracking-widest font-sans font-bold">Secs</span></div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                <span>Cycle Velocity Pipeline</span>
+                                <span class="font-mono text-emerald-400">${countdownText}</span>
+                            </div>
+                            <div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-white/10 p-0.5">
+                                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: ${percentDone}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-1 text-[10px]">
+                            <div class="bg-black/30 border border-white/5 rounded-xl p-2.5">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Projected Total Gain</span>
+                                <span class="font-mono font-black text-emerald-400">+$${projectedProfitUSD.toFixed(2)} USD</span>
+                            </div>
+                            <div class="bg-black/30 border border-white/5 rounded-xl p-2.5">
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Cycle Duration</span>
+                                <span class="font-mono font-black text-slate-200">${activePlanConfig.duration} Days Cycle</span>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
         }
 
-        let UX_CURRENCY_PREF = localStorage.getItem("userConsoleCurrency") || "USD";
-        document.getElementById('currencySelector').value = UX_CURRENCY_PREF;
-
-        updateCurrencyDisplay();
-
         function updateCurrencyDisplay() {
-            const key = document.getElementById('currencySelector').value;
-            localStorage.setItem("userConsoleCurrency", key);
-            const val = (baseAssetBalanceUSD * FX_MATRIX[key]).toFixed(2);
-            document.getElementById('balanceDisplay').innerText = key === 'USD' ? `$${val} USD` : `${val} ${key}`;
+            const currency = document.getElementById('currencySelector').value || 'USD';
+            const fxRate = FX_MATRIX[currency] || 1.0;
+            const convertedBalance = baseAssetBalanceUSD * fxRate;
+
+            const symbolMap = { USD: '$', PHP: '₱', INR: '₹', PKR: '₨', AED: 'د.إ' };
+            const symbol = symbolMap[currency] || '$';
+
+            const displayElem = document.getElementById('balanceDisplay');
+            if (displayElem) {
+                displayElem.innerText = `${symbol}${convertedBalance.toFixed(2)} ${currency}`;
+            }
         }
 
         function updateFrozenBannerVisualState() {
-            const el = document.getElementById('accountFrozenBanner');
-            if (el) {
-                if (isAccountFrozen) { el.classList.replace('hidden', 'block'); } 
-                else { el.classList.replace('block', 'hidden'); }
+            const frozenBanner = document.getElementById('accountFrozenBanner');
+            if (frozenBanner) {
+                if (isAccountFrozen) {
+                    frozenBanner.classList.replace('hidden', 'block');
+                } else {
+                    frozenBanner.classList.replace('block', 'hidden');
+                }
             }
         }
 
         function updateWithdrawActionTriggerButton() {
-            const targetPlaceholder = document.getElementById('withdrawalActionPlaceholder');
-            if (!targetPlaceholder) return;
-            if (isWithdrawRestrained) {
-                targetPlaceholder.innerHTML = `
-                    <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold rounded-xl p-3 text-center uppercase tracking-wider">
-                        🔒Due to heavy traffic on this account, withdraw is closed, refer 1 person to get referral bonus and to unlock the withdraw process instantly.
-                    </div>`;
+            const container = document.getElementById('withdrawalActionPlaceholder');
+            if (!container) return;
+
+            if (isAccountFrozen) {
+                container.innerHTML = `
+                    <button disabled class="w-full bg-rose-600/40 text-rose-300 border border-rose-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
+                        🔒 Terminal Restricted (Account Frozen)
+                    </button>`;
+            } else if (isWithdrawRestrained) {
+                container.innerHTML = `
+                    <button disabled class="w-full bg-amber-600/40 text-amber-300 border border-amber-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
+                        ⚠️ Remittance Paused (Verification Pending)
+                    </button>`;
             } else {
-                targetPlaceholder.innerHTML = `
-                    <button onclick="commitSecureRemittanceOutwardPayload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
-                        Execute Remittance Payload
+                container.innerHTML = `
+                    <button type="button" onclick="executeWithdrawalRequestSubmission()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-lg transition-all cursor-pointer">
+                        Authorize Outbound Remittance 🚀
                     </button>`;
             }
         }
 
-        function switchMainConsoleTab(targetTab) {
-            const core = document.getElementById('tabCoreContainer');
-            const withdraw = document.getElementById('tabWithdrawContainer');
-            if (targetTab === 'withdraw') {
-                core.classList.replace('block', 'hidden');
-                withdraw.classList.replace('hidden', 'block');
-            } else {
-                withdraw.classList.replace('block', 'hidden');
-                core.classList.replace('hidden', 'block');
+        function handleTopupClickAction() {
+            if (isAccountFrozen) {
+                triggerAppAlert('Access Restriction', 'Your account is currently frozen. Topup services are suspended.', '🚨');
+                return;
+            }
+            if (typeof toggleTopupModal === 'function') {
+                toggleTopupModal(true);
             }
         }
 
-        function commitSecureRemittanceOutwardPayload() {
-            const net = document.getElementById('withdrawNetworkSelector').value;
-            const addr = document.getElementById('withdrawAddressInput').value;
-            const amt = parseFloat(document.getElementById('withdrawAmountInput').value);
+        function switchMainConsoleTab(tab) {
+            const coreTab = document.getElementById('tabCoreContainer');
+            const withdrawTab = document.getElementById('tabWithdrawContainer');
 
-            if (!addr || addr.trim() === '' || isNaN(amt) || amt <= 0) {
-                triggerAppAlert('Invalid Variables', 'Please enter a valid wallet address and amount to process.', '⚠️');
+            if (tab === 'withdraw') {
+                if (isAccountFrozen) {
+                    triggerAppAlert('Access Restriction', 'Your account is frozen. Terminal operations are offline.', '🚨');
+                    return;
+                }
+                coreTab.classList.replace('block', 'hidden');
+                withdrawTab.classList.replace('hidden', 'block');
+            } else {
+                withdrawTab.classList.replace('block', 'hidden');
+                coreTab.classList.replace('hidden', 'block');
+            }
+        }
+
+        function executeWithdrawalRequestSubmission() {
+            const address = document.getElementById('withdrawAddressInput').value.trim();
+            const amount = parseFloat(document.getElementById('withdrawAmountInput').value);
+            const network = document.getElementById('withdrawNetworkSelector').value;
+
+            if (!address) {
+                triggerAppAlert('Invalid Parameters', 'Please enter a valid target wallet address.', '⚠️');
                 return;
             }
-            if (amt > baseAssetBalanceUSD) {
-                triggerAppAlert('Liquidity Fault', 'Requested balance exceeds asset portfolio depth.', '❌');
+
+            if (!amount || amount <= 0 || amount > baseAssetBalanceUSD) {
+                triggerAppAlert('Insufficient Funds', 'Specified remittance amount exceeds available capital.', '⚠️');
                 return;
             }
 
-            openConfirmModal(`Confirm transaction of $${amt.toFixed(2)} USD to ${net} network address? Notice: A $2 fee will be deducted under withdraw policy (Not applicable for beginner plan buyers)`, () => {
-                fetch('/user/request-withdraw', {
+            openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?`, () => {
+                fetch('/user/withdraw', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ blockchain: net, address: addr, amount: amt })
+                    body: JSON.stringify({ network, address, amount })
                 })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        triggerAppAlert('Request Sent', 'Your withdrawal has been registered under pending status.', '✨');
+                        triggerAppAlert('Request Dispatched', 'Outbound remittance sequence initialized.', '✅');
                         document.getElementById('withdrawAddressInput').value = '';
                         document.getElementById('withdrawAmountInput').value = '';
                         syncData();
                     } else {
-                        triggerAppAlert('Request Denied', data.msg || 'Transaction rejected by system.', '❌');
+                        triggerAppAlert('Transfer Error', data.message || 'Remittance sequence failed.', '🚨');
                     }
                 })
-                .catch(() => { triggerAppAlert('Network Failure', 'Failed to dispatch remittance payload requests.', '❌'); });
+                .catch(err => {
+                    triggerAppAlert('System Error', 'Network request failed.', '🚨');
+                });
             });
         }
 
         function renderWithdrawalLedgerStream() {
             const container = document.getElementById('withdrawalHistoryLedgerStream');
             if (!container) return;
+
             if (!mockWithdrawalLedgerHistory || mockWithdrawalLedgerHistory.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl bg-black/10">
@@ -586,18 +585,18 @@
                     </div>`;
                 return;
             }
+
             let html = '';
             mockWithdrawalLedgerHistory.forEach(item => {
-                let badgeColor = 'border-amber-500/30 text-amber-400 bg-amber-500/10';
-                if (item.status === 'approved' || item.status === 'completed') badgeColor = 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10';
-                if (item.status === 'rejected' || item.status === 'failed') badgeColor = 'border-rose-500/30 text-rose-400 bg-rose-500/10';
+                let badgeColor = "text-amber-400 border-amber-500/30 bg-amber-500/10";
+                if (item.status === 'approved' || item.status === 'completed') badgeColor = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+                if (item.status === 'rejected' || item.status === 'declined') badgeColor = "text-rose-400 border-rose-500/30 bg-rose-500/10";
 
                 html += `
-                    <div class="bg-black/40 border border-white/5 rounded-2xl p-3 flex justify-between items-center">
+                    <div class="flex items-center justify-between border border-white/10 bg-black/40 p-3 rounded-2xl text-[11px]">
                         <div>
-                            <span class="text-[8px] font-mono text-slate-500 block uppercase tracking-widest">${new Date(item.createdAt).toLocaleString()}</span>
-                            <span class="text-[11px] font-mono font-black text-white">$${parseFloat(item.amount).toFixed(2)} <span class="text-[9px] text-slate-400 font-sans">${item.method || 'Blockchain Network'}</span></span>
-                            <p class="text-[9px] text-slate-400 font-mono break-all max-w-[200px] mt-0.5">${item.address}</p>
+                            <span class="font-black text-white">$${parseFloat(item.amount).toFixed(2)} USD</span>
+                            <span class="text-[9px] text-slate-400 block">${item.network || 'USDT'} &bull; ${item.address ? (item.address.substring(0, 6) + '...' + item.address.substring(item.address.length - 4)) : 'N/A'}</span>
                         </div>
                         <span class="text-[8px] uppercase font-black tracking-widest px-2 py-0.5 rounded border ${badgeColor}">${item.status}</span>
                     </div>`;
