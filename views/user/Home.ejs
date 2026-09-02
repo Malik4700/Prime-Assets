@@ -567,7 +567,7 @@
         return;
     }
 
-    openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?`, () => {
+    openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?\nNote: a $2 of withdrawal fees will be deducted from the withdrawal amount while settling.`, () => {
         fetch('/admin/request-withdrawal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
