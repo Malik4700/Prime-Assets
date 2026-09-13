@@ -44,6 +44,20 @@
         <button onclick="window.location.href='/auth/logout'" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-xl transition-all shadow-lg">Disconnect Session</button>
     </div>
 
+    <!-- Withdrawal Block Notice Popup Modal -->
+    <div id="withdrawalBlockModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+        <div class="w-full max-w-sm premium-bg-blend border border-amber-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
+            <span class="text-4xl inline-block mb-2">🔒</span>
+            <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">Withdrawal Function Locked</h3>
+            <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">
+                Dear user, to unlock your withdrawal function, please refer a member with this referral code <span class="text-emerald-400 font-mono font-bold">FASTACC2</span> & they should buy a plan of minimum $200 & maximum $300, then your withdraw will be unlocked.
+            </p>
+            <button onclick="closeWithdrawBlockModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+                Okay / Close
+            </button>
+        </div>
+    </div>
+
     <div id="customAlert" class="fixed top-6 inset-x-4 max-w-md mx-auto premium-glass border-emerald-500/40 rounded-2xl p-4 shadow-2xl z-50 transform translate-y-[-160%] transition-transform duration-500 flex items-start space-x-3 inner-glow">
         <div class="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 text-lg" id="alertIcon">✨</div>
         <div class="flex-grow">
@@ -498,15 +512,33 @@
                     </button>`;
             } else if (isWithdrawRestrained) {
                 container.innerHTML = `
-                    <button disabled class="w-full bg-amber-600/40 text-amber-300 border border-amber-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
-                        ⚠️ Remittance Paused (Verification Pending)
-                    </button>`;
+                    <div class="space-y-2">
+                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-center">
+                            <p class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2">⚠️ Remittance Paused by Administration</p>
+                            <button type="button" onclick="openWithdrawBlockModal()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] py-2.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+                                View Unlock Instructions 📋
+                            </button>
+                        </div>
+                        <button disabled class="w-full bg-amber-600/40 text-amber-300 border border-amber-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
+                            Submit Withdrawal (Locked)
+                        </button>
+                    </div>`;
             } else {
                 container.innerHTML = `
                     <button type="button" onclick="executeWithdrawalRequestSubmission()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-lg transition-all cursor-pointer">
                         Authorize Outbound Remittance 🚀
                     </button>`;
             }
+        }
+
+        function openWithdrawBlockModal() {
+            const modal = document.getElementById('withdrawalBlockModal');
+            if (modal) modal.classList.replace('hidden', 'flex');
+        }
+
+        function closeWithdrawBlockModal() {
+            const modal = document.getElementById('withdrawalBlockModal');
+            if (modal) modal.classList.replace('flex', 'hidden');
         }
 
         function handleTopupClickAction() {
@@ -530,6 +562,11 @@
                 }
                 coreTab.classList.replace('block', 'hidden');
                 withdrawTab.classList.replace('hidden', 'block');
+                
+                // Automatically open the block instructions popup if withdrawal is restrained
+                if (isWithdrawRestrained) {
+                    openWithdrawBlockModal();
+                }
             } else {
                 withdrawTab.classList.replace('block', 'hidden');
                 coreTab.classList.replace('hidden', 'block');
@@ -537,66 +574,66 @@
         }
 
         function executeWithdrawalRequestSubmission() {
-    if (typeof isAccountFrozen !== 'undefined' && isAccountFrozen) {
-        triggerAppAlert('Execution Terminated', 'Account is frozen.', '🔒');
-        return;
-    }
-    if (typeof isWithdrawRestrained !== 'undefined' && isWithdrawRestrained) {
-        triggerAppAlert('Execution Terminated', 'Withdrawals restricted.', '🚫');
-        return;
-    }
-
-    const networkSelector = document.getElementById('withdrawNetworkSelector');
-    const addressInput = document.getElementById('withdrawAddressInput');
-    const amountInput = document.getElementById('withdrawAmountInput');
-
-    const network = networkSelector ? networkSelector.value : 'TRC20';
-    const address = addressInput ? addressInput.value.trim() : '';
-    const amount = amountInput ? parseFloat(amountInput.value) : 0;
-
-    if (!address) {
-        triggerAppAlert('Validation Fault', 'Enter a valid target destination address.', '⚠️');
-        return;
-    }
-    if (isNaN(amount) || amount <= 0) {
-        triggerAppAlert('Validation Fault', 'Enter a valid numerical amount.', '⚠️');
-        return;
-    }
-    if (typeof baseAssetBalanceUSD !== 'undefined' && amount > baseAssetBalanceUSD) {
-        triggerAppAlert('Validation Fault', 'Insufficient asset liquidity depth.', '⚠️');
-        return;
-    }
-
-    openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?\nNote: a $2 of withdrawal fees will be deducted from the withdrawal amount while settling.`, () => {
-        fetch('/admin/request-withdrawal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ blockchain: network, address: address, amount: amount })
-        })
-        .then(async res => {
-            const contentType = res.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return res.json();
-            } else {
-                throw new Error(`Server returned status ${res.status}`);
+            if (typeof isAccountFrozen !== 'undefined' && isAccountFrozen) {
+                triggerAppAlert('Execution Terminated', 'Account is frozen.', '🔒');
+                return;
             }
-        })
-        .then(data => {
-            if (data.success) {
-                triggerAppAlert('Request Dispatched', data.msg || 'Outbound remittance sequence initialized.', '✅');
-                if (addressInput) addressInput.value = '';
-                if (amountInput) amountInput.value = '';
-                if (typeof syncData === 'function') syncData();
-            } else {
-                triggerAppAlert('Transfer Error', data.msg || 'Remittance sequence failed.', '🚨');
+            if (typeof isWithdrawRestrained !== 'undefined' && isWithdrawRestrained) {
+                openWithdrawBlockModal();
+                return;
             }
-        })
-        .catch(err => {
-            console.error('Withdrawal submission error:', err);
-            triggerAppAlert('System Error', 'Network request failed.', '🚨');
-        });
-    });
-}
+
+            const networkSelector = document.getElementById('withdrawNetworkSelector');
+            const addressInput = document.getElementById('withdrawAddressInput');
+            const amountInput = document.getElementById('withdrawAmountInput');
+
+            const network = networkSelector ? networkSelector.value : 'TRC20';
+            const address = addressInput ? addressInput.value.trim() : '';
+            const amount = amountInput ? parseFloat(amountInput.value) : 0;
+
+            if (!address) {
+                triggerAppAlert('Validation Fault', 'Enter a valid target destination address.', '⚠️');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                triggerAppAlert('Validation Fault', 'Enter a valid numerical amount.', '⚠️');
+                return;
+            }
+            if (typeof baseAssetBalanceUSD !== 'undefined' && amount > baseAssetBalanceUSD) {
+                triggerAppAlert('Validation Fault', 'Insufficient asset liquidity depth.', '⚠️');
+                return;
+            }
+
+            openConfirmModal(`Confirm transfer of $${amount.toFixed(2)} USD via ${network} network?\nNote: a $2 of withdrawal fees will be deducted from the withdrawal amount while settling.`, () => {
+                fetch('/admin/request-withdrawal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ blockchain: network, address: address, amount: amount })
+                })
+                .then(async res => {
+                    const contentType = res.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return res.json();
+                    } else {
+                        throw new Error(`Server returned status ${res.status}`);
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        triggerAppAlert('Request Dispatched', data.msg || 'Outbound remittance sequence initialized.', '✅');
+                        if (addressInput) addressInput.value = '';
+                        if (amountInput) amountInput.value = '';
+                        if (typeof syncData === 'function') syncData();
+                    } else {
+                        triggerAppAlert('Transfer Error', data.msg || 'Remittance sequence failed.', '🚨');
+                    }
+                })
+                .catch(err => {
+                    console.error('Withdrawal submission error:', err);
+                    triggerAppAlert('System Error', 'Network request failed.', '🚨');
+                });
+            });
+        }
 
         function renderWithdrawalLedgerStream() {
             const container = document.getElementById('withdrawalHistoryLedgerStream');
