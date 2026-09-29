@@ -792,6 +792,49 @@ router.post('/request-withdrawal', isUser, async (req, res) => {
     }
 });
 
+// ==================== NEW ROUTE: ADMIN PLANS ACTION HANDLER ====================
+router.post('/plans/action', isAdmin, async (req, res) => {
+    try {
+        const { userId, action } = req.body;
+        const adminManagerCode = req.session.adminCode ? req.session.adminCode.trim() : '';
+        const codeQueryRegex = { $regex: new RegExp(`^${adminManagerCode}$`, 'i') };
+
+        const targetUser = await User.findOne({ _id: userId, assignedAdminCode: codeQueryRegex });
+        if (!targetUser || targetUser.planRequestStatus !== 'pending') {
+            return res.status(400).json({ success: false, msg: 'No active plan execution requests pending matching criteria.' });
+        }
+
+        if (action === 'approve') {
+            const planDurationDays = parseInt(targetUser.requestedPlanName);
+            const daysCount = isNaN(planDurationDays) ? 30 : planDurationDays;
+
+            const creationTimeNode = new Date();
+            const deathTimeNode = new Date();
+            deathTimeNode.setDate(creationTimeNode.getDate() + daysCount);
+
+            targetUser.currentPlan = String(daysCount);
+            targetUser.planStartedAt = creationTimeNode;
+            targetUser.planActivatedAt = creationTimeNode;
+            targetUser.planExpiresAt = deathTimeNode;
+            targetUser.planRequestStatus = 'approved';
+        } else if (action === 'reject') {
+            // Plan is rejected without refunding the cost back to the user balance
+            targetUser.planRequestStatus = 'none';
+        } else {
+            return res.status(400).json({ success: false, msg: 'Invalid action command parameter.' });
+        }
+
+        targetUser.requestedPlanName = '';
+        targetUser.requestedPlanCost = 0;
+
+        await targetUser.save();
+        return res.json({ success: true, msg: `Plan request successfully ${action === 'approve' ? 'approved' : 'declined'}.` });
+    } catch (err) {
+        console.error('Plan action execution error:', err);
+        return res.status(500).json({ success: false, msg: 'Internal server error processing plan action.' });
+    }
+});
+
 // ==================== ADMINISTRATIVE DEPOSIT PROCESSING CONTROL ENDPOINTS ====================
 
 // 1. Verify and Authorize Deposit Proof

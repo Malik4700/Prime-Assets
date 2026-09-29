@@ -477,8 +477,8 @@ app.get('/admin/api/users-plans-queue', requireLogin, async (req, res) => {
             return res.status(403).json({ success: false, msg: 'Unauthorized workspace access.' });
         }
         
-        // Filter users so admins ONLY see plans belonging to their own assigned promo code node
         const adminManagerCode = req.session.adminCode.toUpperCase().trim();
+        
         const systemUsers = await User.find({
             assignedAdminCode: adminManagerCode,
             $or: [
@@ -486,7 +486,14 @@ app.get('/admin/api/users-plans-queue', requireLogin, async (req, res) => {
                 { currentPlan: { $exists: true, $ne: 'None', $ne: '' } }
             ]
         });
-        return res.json(systemUsers);
+
+        const PlanHistory = require('./models/PlanHistory');
+        const planHistory = await PlanHistory.find({ assignedAdminCode: adminManagerCode }).sort({ completedAt: -1 }).limit(50);
+
+        return res.json({
+            users: systemUsers,
+            history: planHistory
+        });
     } catch (err) {
         console.error('API Plan cluster query exception:', err);
         return res.status(500).json({ error: 'Failed to synchronize system records stream data matrix.' });
@@ -719,26 +726,38 @@ setInterval(async () => {
         }
 
         // --- 2. AUTOMATIC PLAN EXPIRATION & RESET ---
-        // Identifies users whose time has passed and resets them to 'None'
         const expiredUsers = await User.find({
-            currentPlan: { $exists: true, $ne: 'None', $ne: '' },
+            currentPlan: { $exists: true, $ne: 'None',$ne: '' },
             planExpiresAt: { $lte: now }
         });
 
+        const PlanHistory = require('./models/PlanHistory');
+
         for (const user of expiredUsers) {
+            // Save to History before wiping active plan state
+            await PlanHistory.create({
+                userId: user._id,
+                username: user.username,
+                email: user.email,
+                planName: user.currentPlan,
+                planActivatedAt: user.planActivatedAt || user.createdAt,
+                planExpiresAt: user.planExpiresAt,
+                assignedAdminCode: user.assignedAdminCode || 'SYSTEM'
+            });
+
             user.currentPlan = 'None';
             user.planExpiresAt = '';
+            user.planActivatedAt = '';
             user.isPlanPaused = false;
             await user.save();
             
-            // Notify the client of the reset so UI updates immediately (e.g., enable Withdraw button)
             if (io) {
                 io.to(user._id.toString()).emit('balanceUpdate', {
                     currentPlan: 'None',
                     planExpiresAt: ''
                 });
             }
-            console.log(`[SYSTEM CLEANUP] Plan expired and reset for user: ${user.username}`);
+            console.log(`[SYSTEM CLEANUP] Plan expired, archived to history, and reset for user: ${user.username}`);
         }
 
     } catch (err) {
