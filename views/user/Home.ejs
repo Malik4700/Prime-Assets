@@ -6,187 +6,315 @@
     <title>Home Console | PRIME ASSETS HOLDINGS 4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-color: #e2ecf8;
+            --neu-light: #ffffff;
+            --neu-dark: #7a9fc5;
+            --neu-text: #090d16;
+            --neu-accent: #f97316;
+        }
         body {
-            background-image: linear-gradient(rgba(4, 23, 19, 0.35), rgba(2, 15, 12, 0.40)), url('/BG.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-color: var(--bg-color);
+            color: var(--neu-text);
+            font-family: 'Bahnschrift', 'Outfit', sans-serif;
+            font-weight: 700;
         }
-        .premium-bg-blend {
-            background-image: linear-gradient(rgba(15, 23, 42, 0.80), rgba(4, 30, 22, 0.85)), url('/BG.jpg');
-            background-size: cover;
-            background-position: center;
+        
+        /* 9D Floating Holographic Neumorphic UI Shadows & Layers */
+        .neu-flat {
+            background: var(--bg-color);
+            box-shadow: 24px 24px 48px #7a9fc5, -24px -24px 48px #ffffff, inset 3px 3px 6px rgba(255,255,255,0.9), inset -3px -3px 6px rgba(122,159,197,0.6);
+            border: 2px solid #f97316;
+            transform: translateY(-3px) translateZ(15px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .premium-glass {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
+        .neu-flat:hover {
+            transform: translateY(-6px) translateZ(25px);
+            box-shadow: 30px 30px 60px #7a9fc5, -30px -30px 60px #ffffff, inset 3px 3px 6px rgba(255,255,255,0.9), inset -3px -3px 6px rgba(122,159,197,0.6);
         }
-        .inner-glow {
-            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.6);
+
+        .neu-pressed {
+            background: var(--bg-color);
+            box-shadow: inset 10px 10px 20px #7a9fc5, inset -10px -10px 20px #ffffff;
+            border: 2px solid #f97316;
         }
-        .text-glow {
-            text-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+
+        .neu-button {
+            background: var(--bg-color);
+            box-shadow: 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+            border: 2px solid #f97316;
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
         }
-        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.5); border-radius: 99px; }
+        .neu-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 16px 16px 32px #7a9fc5, -16px -16px 32px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+        }
+        .neu-button:active, .neu-button.active {
+            box-shadow: inset 8px 8px 16px #7a9fc5, inset -8px -8px 16px #ffffff;
+            border-color: #c2410c;
+            transform: translateY(1px);
+        }
+        
+        /* Fixed Floating 9D Dropdown Container placed precisely below the toggle */
+        .custom-dropdown-container {
+            position: relative;
+            width: 100%;
+        }
+        .custom-dropdown-select {
+            width: 100%;
+            background: var(--bg-color);
+            box-shadow: inset 6px 6px 12px #7a9fc5, inset -6px -6px 12px #ffffff;
+            border: 2px solid #f97316;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 900;
+            color: #090d16;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-dropdown-options {
+            position: absolute; /* Absolute positioning relative to the container so it flows directly from the button */
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            max-height: 180px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            box-shadow: 20px 20px 40px #7a9fc5, -20px -20px 40px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+            border: 2px solid #f97316;
+            border-radius: 0.85rem;
+            z-index: 99999;
+            display: none;
+        }
+        .custom-dropdown-options.open {
+            display: block;
+        }
+        .custom-dropdown-option {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: #090d16;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        .custom-dropdown-option:last-child {
+            border-bottom: none;
+        }
+        .custom-dropdown-option:hover {
+            background: rgba(249, 115, 22, 0.25);
+            color: #c2410c;
+            padding-left: 1rem;
+        }
+
+        /* Rainbow Border Animation for Account Protection Active */
+        @keyframes rainbowBorder {
+            0% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            20% { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            40% { border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            60% { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            80% { border-color: #8b5cf6; box-shadow: 0 0 20px rgba(139, 92, 246, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            100% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.7), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+        }
+        .rainbow-border {
+            border: 2px solid #ef4444;
+            animation: rainbowBorder 4s linear infinite;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(122,159,197,0.1); border-radius: 99px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.8); border-radius: 99px; }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen flex flex-col font-sans antialiased pb-24 select-none relative overflow-x-hidden custom-scroll">
+<body class="min-h-screen flex flex-col antialiased pb-28 select-none relative overflow-x-hidden custom-scroll" style="perspective: 1200px;">
 
-    <div id="blockadeOverlay" class="<%= (typeof user !== 'undefined' && user && user.isBlocked) ? 'flex' : 'hidden' %> fixed inset-0 bg-black/95 backdrop-blur-2xl z-50 flex-col items-center justify-center text-center p-6">
-        <div class="w-20 h-20 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-2xl animate-pulse">⚠️</div>
-        <h1 class="text-white font-black tracking-tight text-xl uppercase mb-3">System Access Suspended</h1>
-        <p class="text-slate-400 text-xs max-w-sm leading-relaxed mb-6">Your access parameters have been temporarily restricted by security operations. Please contact administrator.</p>
-        <button onclick="window.location.href='/auth/logout'" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-xl transition-all shadow-lg">Disconnect Session</button>
+    <!-- Blockade Overlay -->
+    <div id="blockadeOverlay" class="<%= (typeof user !== 'undefined' && user && user.isBlocked) ? 'flex' : 'hidden' %> fixed inset-0 bg-[#e2ecf8]/90 backdrop-blur-xl z-50 flex-col items-center justify-center text-center p-6">
+        <div class="w-20 h-20 neu-pressed text-rose-600 rounded-3xl flex items-center justify-center text-4xl mb-6 animate-pulse" style="border: 2px solid #f97316;">⚠️</div>
+        <h1 class="text-[#090d16] font-black tracking-tight text-xl uppercase mb-3">System Access Suspended</h1>
+        <p class="text-[#121c2e] font-bold text-xs max-w-sm leading-relaxed mb-6">Your access parameters have been temporarily restricted by security operations. Please contact administrator.</p>
+        <button onclick="window.location.href='/auth/logout'" class="bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-widest px-8 py-3.5 rounded-2xl transition-all shadow-xl border-2 border-orange-500">Disconnect Session</button>
     </div>
 
     <!-- Withdrawal Block Notice Popup Modal -->
-    <div id="withdrawalBlockModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
-        <div class="w-full max-w-sm premium-bg-blend border border-amber-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
+    <div id="withdrawalBlockModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+        <div class="w-full max-w-sm neu-flat rounded-[32px] p-6 text-center animate-scaleIn">
             <span class="text-4xl inline-block mb-2">🔒</span>
-            <h3 class="text-xs font-black uppercase tracking-wider text-amber-400">Withdrawal Function Locked</h3>
-            <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">
-                Dear user, to unlock your withdrawal function, please refer a member with this referral code <span class="text-emerald-400 font-mono font-bold">FASTACC2</span> & they should buy a plan of minimum $200 & maximum $300, then your withdraw will be unlocked.
+            <h3 class="text-xs font-black uppercase tracking-wider text-amber-600">Withdrawal Function Locked</h3>
+            <p class="text-[#121c2e] font-bold text-[11px] mt-2 mb-6 leading-relaxed">
+                Dear user, to unlock your withdrawal function, please refer a member with this referral code <span class="text-emerald-700 font-mono font-black">FASTACC2</span> & they should buy a plan of minimum $200 & maximum $300, then your withdraw will be unlocked[cite: 13].
             </p>
-            <button onclick="closeWithdrawBlockModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+            <button onclick="closeWithdrawBlockModal()" class="w-full neu-button text-emerald-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest transition-all cursor-pointer">
                 Okay | Close
             </button>
         </div>
     </div>
 
-    <div id="customAlert" class="fixed top-6 inset-x-4 max-w-md mx-auto premium-glass border-emerald-500/40 rounded-2xl p-4 shadow-2xl z-50 transform translate-y-[-160%] transition-transform duration-500 flex items-start space-x-3 inner-glow">
-        <div class="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 text-lg" id="alertIcon">✨</div>
+    <!-- Custom Alert Notification -->
+    <div id="customAlert" class="fixed top-6 inset-x-4 max-w-md mx-auto neu-flat rounded-2xl p-4 z-50 transform translate-y-[-160%] transition-transform duration-500 flex items-start space-x-3">
+        <div class="p-2 neu-pressed rounded-xl text-emerald-700 text-lg font-black" id="alertIcon">✨</div>
         <div class="flex-grow">
-            <h4 class="text-xs font-black uppercase tracking-wider text-white" id="alertTitle">System Message</h4>
-            <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed" id="alertMessage">Action logged successfully.</p>
+            <h4 class="text-xs font-black uppercase tracking-wider text-[#090d16]" id="alertTitle">System Message</h4>
+            <p class="text-[#121c2e] font-bold text-[11px] mt-0.5 leading-relaxed" id="alertMessage">Action logged successfully.</p>
         </div>
-        <button onclick="dismissAlert()" class="text-slate-400 hover:text-white text-base font-bold px-1">&times;</button>
+        <button onclick="dismissAlert()" class="text-[#090d16] hover:text-black text-base font-black px-1">&times;</button>
     </div>
 
-    <div id="confirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
-        <div class="w-full max-w-xs premium-bg-blend border border-white/20 rounded-3xl p-6 text-center shadow-2xl inner-glow">
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+        <div class="w-full max-w-xs neu-flat rounded-3xl p-6 text-center">
             <span class="text-3xl">🛡️</span>
-            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-3">Confirm Execution</h3>
-            <p class="text-slate-300 text-[11px] mt-2 mb-5" id="confirmModalText">Are you sure you wish to authorize this parameter cycle?</p>
+            <h3 class="text-xs font-black uppercase tracking-wider text-[#090d16] mt-3">Confirm Execution</h3>
+            <p class="text-[#121c2e] font-bold text-[11px] mt-2 mb-5" id="confirmModalText">Are you sure you wish to authorize this parameter cycle?</p>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeConfirmModal(false)" class="bg-white/10 hover:bg-white/20 border border-white/10 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all">Cancel</button>
-                <button onclick="closeConfirmModal(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-2.5 rounded-xl transition-all">Confirm</button>
+                <button onclick="closeConfirmModal(false)" class="neu-button text-[#090d16] font-black text-xs py-2.5 rounded-2xl transition-all">Cancel</button>
+                <button onclick="closeConfirmModal(true)" class="neu-button text-emerald-700 font-black text-xs py-2.5 rounded-2xl transition-all">Confirm</button>
             </div>
         </div>
     </div>
 
-    <header class="w-full premium-glass border-b border-white/10 sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div class="flex items-center space-x-2.5">
-            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-950/40">PAH</div>
-            <div>
-                <span class="block text-xs font-black tracking-widest text-white uppercase leading-none">PRIME ASSETS HOLDINGS 4.0</span>
-                <span class="text-[8px] text-emerald-400 font-bold uppercase tracking-widest">secure 🔒</span>
-            </div>
+    <!-- Header -->
+  <header class="w-full neu-flat sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-md">
+    <div class="flex items-center space-x-2.5">
+        <div class="w-14 h-10 neu-pressed rounded-2xl flex items-center justify-center text-emerald-700 font-black text-sm">PAH</div>
+        <div>
+            <span class="block text-xs font-black tracking-widest text-[#090d16] uppercase leading-none">PRIME ASSETS HOLDINGS 4.0</span>
+            <span class="text-[9px] text-emerald-700 font-black uppercase tracking-widest">secure 🔒</span>
         </div>
-        <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full font-black uppercase tracking-widest animate-pulse">Account Protection active</span>
-    </header>
+    </div>
+    <span class="text-[9px] neu-pressed rainbow-border text-emerald-700 px-3 py-1.5 rounded-full font-black uppercase tracking-widest animate-pulse">Dashboard</span>
+</header>
 
-    <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-5">
-        <div class="premium-bg-blend rounded-[32px] p-6 shadow-2xl border border-emerald-500/30 inner-glow relative overflow-hidden">
-            <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
+    <!-- Main Content -->
+    <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-6" style="transform-style: preserve-3d;">
+        
+        <!-- Balance Asset Card -->
+        <div class="neu-flat rounded-[32px] p-6 relative overflow-visible">
+            <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none rounded-r-[32px]"></div>
             <div class="relative z-10">
-                <div class="flex justify-between items-center mb-2">
-                    <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Total Available Asset</p>
-                    <select id="currencySelector" onchange="updateCurrencyDisplay()" class="bg-black/60 text-white border border-white/20 rounded-xl px-2 py-0.5 text-xs font-bold focus:outline-none cursor-pointer">
-                        <option value="USD" class="text-slate-900" selected>USD ($)</option>
-                        <option value="PHP" class="text-slate-900">PHP (₱)</option>
-                        <option value="INR" class="text-slate-900">INR (₹)</option>
-                        <option value="PKR" class="text-slate-900">PKR (₨)</option>
-                        <option value="AED" class="text-slate-900">AED (د.إ)</option>
-                    </select>
+                <div class="flex justify-between items-center mb-3">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-emerald-700">Total Available Asset</p>
+                    
+                    <!-- Custom 9D Currency Dropdown -->
+                    <div class="custom-dropdown-container" style="width: 125px;">
+                        <div id="currencySelectToggle" class="custom-dropdown-select" onclick="toggleCustomDropdown(event, 'currencyDropdownOptions')">
+                            <span id="selectedCurrencyLabel">USD ($)</span>
+                            <span class="text-[10px] font-black">▼</span>
+                        </div>
+                        <div id="currencyDropdownOptions" class="custom-dropdown-options custom-scroll">
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('USD', 'USD ($)')">USD ($)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('PHP', 'PHP (₱)')">PHP (₱)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('INR', 'INR (₹)')">INR (₹)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('PKR', 'PKR (₨)')">PKR (₨)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('AED', 'AED (د.إ)')">AED (د.إ)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('EUR', 'EUR (€)')">EUR (€)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('GBP', 'GBP (£)')">GBP (£)</div>
+                            <div class="custom-dropdown-option" onclick="selectCurrencyOption('CAD', 'CAD ($)')">CAD ($)</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="accountFrozenBanner" class="<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'block' : 'hidden' %> bg-rose-500/20 border border-rose-500/40 text-rose-300 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
+                <div id="accountFrozenBanner" class="<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'block' : 'hidden' %> neu-pressed text-rose-700 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
                     🚨 Frozen Account Access Suspended
                 </div>
                 
                 <% if (typeof user !== 'undefined' && user && (user.isPlanPaused === true || user.isPlanPaused === 'true')) { %>
-                    <div class="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
-                        ⏸️ Distribution Engine Paused by Authority
+                    <div class="neu-pressed text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-xl p-2 mb-3 text-center animate-pulse">
+                        ⏸ Distribution Engine Paused by Authority
                     </div>
                     <script>window.isEnginePausedByAdmin = true;</script>
                 <% } else { %>
                     <script>window.isEnginePausedByAdmin = false;</script>
                 <% } %>
 
-                <h2 id="balanceDisplay" class="text-4xl font-black tracking-tight mb-5 text-white text-glow font-mono">
+                <h2 id="balanceDisplay" class="text-4xl font-black tracking-tight mb-5 text-[#090d16] font-mono">
                     $<%= (typeof user !== 'undefined' && user && user.balance) ? parseFloat(user.balance).toFixed(2) : '0.00' %> USD
                 </h2>
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" id="mainTopupTriggerBtn" onclick="handleTopupClickAction()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3 rounded-2xl shadow-md transition-all uppercase tracking-wider cursor-pointer relative z-30 block w-full">Topup 💲</button>
-                    <button type="button" id="mainWithdrawTriggerBtn" onclick="switchMainConsoleTab('withdraw')" class="bg-white/10 text-white font-black text-xs py-3 rounded-2xl border border-white/20 transition-all uppercase tracking-wider cursor-pointer relative z-30 block w-full">Withdraw 💱</button>
+                    <button type="button" id="mainTopupTriggerBtn" onclick="handleTopupClickAction()" class="neu-button text-emerald-700 font-black text-xs py-3 rounded-2xl transition-all uppercase tracking-wider cursor-pointer relative z-10 block w-full">Topup 💲</button>
+                    <button type="button" id="mainWithdrawTriggerBtn" onclick="switchMainConsoleTab('withdraw')" class="neu-button text-[#090d16] font-black text-xs py-3 rounded-2xl transition-all uppercase tracking-wider cursor-pointer relative z-10 block w-full">Withdraw 💱</button>
                 </div>
             </div>
         </div>
 
-        <div id="adminBroadcastNoticeBanner" class="<%= (typeof user !== 'undefined' && user && user.showWithdrawNotice) ? 'block' : 'hidden' %> premium-glass border-amber-500/30 p-4 rounded-2xl shadow-xl border relative animate-scaleIn">
+        <!-- Admin Broadcast Notice Banner -->
+        <div id="adminBroadcastNoticeBanner" class="<%= (typeof user !== 'undefined' && user && user.showWithdrawNotice) ? 'block' : 'hidden' %> neu-flat p-4 rounded-2xl relative animate-scaleIn">
             <div class="flex items-start space-x-2.5">
                 <span class="text-base">📢</span>
                 <div class="flex-grow">
-                    <h5 class="text-[11px] font-black uppercase tracking-wider text-amber-400">System Notification</h5>
-                    <p class="text-[11px] text-slate-200 mt-0.5 leading-normal font-medium font-bold">Refer 1 friend to get referral bonus and more benefits on withdraw process</p>
-                    <a href="/user/profile" class="inline-block text-[9px] font-black uppercase tracking-wider text-emerald-400 hover:underline mt-2">Read User Manual for more information &rarr;</a>
+                    <h5 class="text-[11px] font-black uppercase tracking-wider text-amber-700">System Notification</h5>
+                    <p class="text-[11px] text-[#121c2e] font-black mt-0.5 leading-normal">Refer 1 friend to get referral bonus and more benefits on withdraw process</p>
+                    <a href="/user/profile" class="inline-block text-[10px] font-black uppercase tracking-wider text-emerald-700 hover:underline mt-2">Read User Manual for more information &rarr;</a>
                 </div>
             </div>
         </div>
 
+        <!-- Core Tab Container -->
         <div id="tabCoreContainer" class="space-y-5 block">
             <div id="dynamicPlanContainer" class="space-y-5">
-                <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg animate-pulse">
+                <div class="neu-flat p-6 rounded-3xl text-center shadow-lg animate-pulse">
                     <span class="text-2xl opacity-40">📊</span>
-                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">Connecting Realtime Database ...</h4>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-[#121c2e] mt-2">Connecting Realtime Database ...</h4>
                 </div>
             </div>
         </div>
 
+        <!-- Withdraw Tab Container -->
         <div id="tabWithdrawContainer" class="space-y-5 hidden">
-            <div class="premium-glass rounded-[28px] p-5 space-y-4 shadow-xl">
+            <div class="neu-flat rounded-[28px] p-5 space-y-4 overflow-visible">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-white">Secure Remittance Terminal</h4>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Transfer completed portfolio capital out into decentralized chains.</p>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-[#090d16]">Secure Remittance Terminal</h4>
+                        <p class="text-[10px] text-[#121c2e] font-black mt-0.5">Transfer completed portfolio capital out into decentralized chains.</p>
                     </div>
-                    <button onclick="switchMainConsoleTab('core')" class="text-[10px] bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-slate-200 font-bold uppercase hover:bg-white/20 transition-all">&larr; Back</button>
+                    <button onclick="switchMainConsoleTab('core')" class="text-[10px] neu-button px-3 py-1.5 rounded-xl text-[#090d16] font-black uppercase transition-all">&larr; Back</button>
                 </div>
 
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Select Blockchain Infrastructure Network</label>
-                        <select id="withdrawNetworkSelector" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none">
-                            <option value="TRC20" class="text-slate-900">TRON Network (TRC20)</option>
-                            <option value="BEP20" class="text-slate-900">Binance Smart Chain (BEP20)</option>
-                            <option value="ERC20" class="text-slate-900">Ethereum Network (ERC20)</option>
-                        </select>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-[#090d16] mb-1">Select Blockchain Infrastructure Network</label>
+                        <!-- Custom 9D Network Dropdown -->
+                        <div class="custom-dropdown-container">
+                            <div id="networkSelectToggle" class="custom-dropdown-select" onclick="toggleCustomDropdown(event, 'networkDropdownOptions')">
+                                <span id="selectedNetworkLabel">TRON Network (TRC20)</span>
+                                <span class="text-[10px] font-black">▼</span>
+                            </div>
+                            <div id="networkDropdownOptions" class="custom-dropdown-options custom-scroll">
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('TRC20', 'TRON Network (TRC20)')">TRON Network (TRC20)</div>
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('BEP20', 'Binance Smart Chain (BEP20)')">Binance Smart Chain (BEP20)</div>
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('ERC20', 'Ethereum Network (ERC20)')">Ethereum Network (ERC20)</div>
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('SOL', 'Solana Network (SOL)')">Solana Network (SOL)</div>
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('POL', 'Polygon Network (POL)')">Polygon Network (POL)</div>
+                                <div class="custom-dropdown-option" onclick="selectNetworkOption('TON', 'The Open Network (TON)')">The Open Network (TON)</div>
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Destination Wallet String Address</label>
-                        <input type="text" id="withdrawAddressInput" placeholder="Paste precise secure wallet index..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-[#090d16] mb-1">Destination Wallet String Address</label>
+                        <input type="text" id="withdrawAddressInput" placeholder="Paste precise secure wallet index..." class="w-full neu-pressed rounded-xl px-3 py-3 text-xs font-black text-[#090d16] focus:outline-none placeholder:text-slate-500">
                     </div>
                     <div>
-                        <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Amount to Remit (USD)</label>
-                        <input type="number" id="withdrawAmountInput" placeholder="0.00" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-[#090d16] mb-1">Amount to Remit (USD)</label>
+                        <input type="number" id="withdrawAmountInput" placeholder="0.00" class="w-full neu-pressed rounded-xl px-3 py-3 text-xs font-black text-[#090d16] focus:outline-none placeholder:text-slate-500">
                     </div>
                     <div id="withdrawalActionPlaceholder"></div>
                 </div>
             </div>
 
-            <div class="premium-glass rounded-[28px] p-5 shadow-xl space-y-3">
+            <div class="neu-flat rounded-[28px] p-5 space-y-3">
                 <div class="flex justify-between items-center">
-                    <h4 class="text-xs font-black uppercase tracking-wider text-white">Remittance Audit Log Ledger</h4>
-                    <span class="text-[8px] bg-white/10 border border-white/10 text-slate-400 px-2 py-0.5 rounded font-mono">Live Matrix</span>
+                    <h4 class="text-xs font-black uppercase tracking-wider text-[#090d16]">Remittance Audit Log Ledger</h4>
+                    <span class="text-[9px] neu-pressed text-[#090d16] px-2 py-0.5 rounded font-mono font-black">Live Matrix</span>
                 </div>
                 <div class="overflow-y-auto custom-scroll max-h-64 space-y-3 pr-1" id="withdrawalHistoryLedgerStream">
-                    <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl bg-black/10">
-                        <p class="text-[11px] font-medium text-slate-400">No archival remittance parameters linked to this instance node.</p>
+                    <div class="text-center py-6 neu-pressed rounded-2xl" style="border: 2px solid #f97316;">
+                        <p class="text-[11px] font-black text-[#121c2e]">No archival remittance parameters linked to this instance node.</p>
                     </div>
                 </div>
             </div>
@@ -195,47 +323,99 @@
 
     <%- include('Deposit') %>
 
-    <div id="supportGatewayModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
-        <div class="w-full max-w-xs premium-bg-blend border border-emerald-500/30 rounded-[32px] p-6 text-center shadow-2xl inner-glow animate-scaleIn">
+    <!-- Support Gateway Modal -->
+    <div id="supportGatewayModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-6">
+        <div class="w-full max-w-xs neu-flat rounded-[32px] p-6 text-center animate-scaleIn">
             <span class="text-4xl inline-block">✅</span>
-            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-4">Proof Signature Submitted</h3>
-            <p class="text-slate-300 text-[11px] mt-2 mb-6 leading-relaxed">Your transaction index signature code has been uploaded to the verification layers. The administration team will verify your transfer metrics shortly.</p>
-            <button onclick="document.getElementById('supportGatewayModal').classList.replace('flex', 'hidden')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+            <h3 class="text-xs font-black uppercase tracking-wider text-[#090d16] mt-4">Proof Signature Submitted</h3>
+            <p class="text-[#121c2e] font-black text-[11px] mt-2 mb-6 leading-relaxed">Your transaction index signature code has been uploaded to the verification layers. The administration team will verify your transfer metrics shortly.</p>
+            <button onclick="document.getElementById('supportGatewayModal').classList.replace('flex', 'hidden')" class="w-full neu-button text-emerald-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest transition-all cursor-pointer">
                 Dismiss Confirmation
             </button>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
-        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
-            <span class="text-xl drop-shadow text-glow">🏠</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Home</span>
-        </a>
-        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
-        </a>
+    <!-- Bottom Navigation Bar with Glassmorphic Round Buttons and Solid Green Active Border -->
+    <nav class="fixed bottom-0 inset-x-0 neu-flat px-4 py-3 flex justify-around items-center z-30 shadow-2xl" style="box-shadow: 0 -15px 30px #7a9fc5, 0 15px 30px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);">
         
-        <a href="/admin/updates" class="relative flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">🔔</span>
-            <span class="text-[9px] uppercase tracking-wider font-black">Updates</span>
-            
+        <!-- Home Button (Active State with Solid Green Border) -->
+        <a href="/user/home" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-emerald-500 text-emerald-700 font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff] transform -translate-y-1 transition-all">
+            <span class="text-lg leading-none">🏠</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Home</span>
+        </a>
+
+        <!-- Plans Button (Glassmorphic Round) -->
+        <a href="/user/plans" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">📊</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Plans</span>
+        </a>
+
+        <!-- Updates Button (Glassmorphic Round) -->
+        <a href="/admin/updates" class="relative flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">🔔</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Updates</span>
             <% if (typeof hasUnreadUpdates !== 'undefined' && hasUnreadUpdates) { %>
-                <span class="absolute top-0 right-2 flex h-2 w-2">
+                <span class="absolute top-1 right-2 flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                 </span>
             <% } %>
         </a>
 
-        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+        <!-- Profile Button (Glassmorphic Round) -->
+        <a href="/user/profile" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">👤</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Profile</span>
         </a>
     </nav>
 
+    <!-- Scripts -->
     <script>
-     
         const socket = io();
 
-        // Listen for realtime balance updates emitted from the backend
+        // Custom Dropdown Flowing Positioning Logic (Aligned precisely under the toggle button)
+        function toggleCustomDropdown(event, dropdownId) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(dropdownId);
+            
+            // Close all other custom dropdowns first
+            document.querySelectorAll('.custom-dropdown-options').forEach(el => {
+                if (el.id !== dropdownId) el.classList.remove('open');
+            });
+
+            dropdown.classList.toggle('open');
+        }
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-dropdown-container')) {
+                document.querySelectorAll('.custom-dropdown-options').forEach(el => {
+                    el.classList.remove('open');
+                });
+            }
+        });
+
+        window.addEventListener('resize', function() {
+            document.querySelectorAll('.custom-dropdown-options').forEach(el => {
+                el.classList.remove('open');
+            });
+        });
+
+        let selectedCurrencyValue = 'USD';
+        function selectCurrencyOption(val, labelText) {
+            selectedCurrencyValue = val;
+            document.getElementById('selectedCurrencyLabel').innerText = labelText;
+            document.getElementById('currencyDropdownOptions').classList.remove('open');
+            updateCurrencyDisplay();
+        }
+
+        let selectedNetworkValue = 'TRC20';
+        function selectNetworkOption(val, labelText) {
+            selectedNetworkValue = val;
+            document.getElementById('selectedNetworkLabel').innerText = labelText;
+            document.getElementById('networkDropdownOptions').classList.remove('open');
+        }
+
         socket.on('balanceUpdate', (data) => {
             if (data) {
                 if (typeof data.balance !== 'undefined') {
@@ -248,7 +428,6 @@
             }
         });
 
-        // 1. Core Hardcoded Tiers
         const METRIC_PLAN_TIER_DICT = {
             "7": { name: "7 Days Beginner Plan", multiplier: 1.20, duration: 7 },
             "15": { name: "15 Days Standard Plan", multiplier: 1.20, duration: 15 },
@@ -259,7 +438,7 @@
         };
 
         let baseAssetBalanceUSD = parseFloat("<%= (typeof user !== 'undefined' && user && user.balance) ? user.balance : 0 %>") || 0;
-        const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67 };
+        const FX_MATRIX = { USD: 1.0, PHP: 56.50, INR: 83.30, PKR: 278.20, AED: 3.67, EUR: 0.92, GBP: 0.79, CAD: 1.36 };
         let isAccountFrozen = "<%= (typeof user !== 'undefined' && user && user.isFrozen) ? 'true' : 'false' %>" === 'true';
         let isWithdrawRestrained = "<%= (typeof user !== 'undefined' && user && user.isWithdrawRestrained) ? 'true' : 'false' %>" === 'true';
         let currentPlanDaysId = "<%= (typeof user !== 'undefined' && user && user.currentPlan) ? user.currentPlan : 'None' %>";
@@ -292,22 +471,22 @@
                         const historyContainer = document.getElementById('userDepositHistoryContainer');
                         if (historyContainer) {
                             if (payload.user.deposits.length === 0) {
-                                historyContainer.innerHTML = `<div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>`;
+                                historyContainer.innerHTML = `<div class="text-center text-[11px] font-black text-[#121c2e] py-2">No transaction records logged.</div>`;
                             } else {
                                 historyContainer.innerHTML = payload.user.deposits.map(item => {
-                                    let badgeStyle = "text-amber-400 bg-amber-500/10 border-amber-500/20";
-                                    if (item.status === 'verified') badgeStyle = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-                                    if (item.status === 'rejected') badgeStyle = "text-rose-400 bg-rose-500/10 border-rose-500/20";
+                                    let badgeStyle = "text-amber-700 neu-pressed";
+                                    if (item.status === 'verified') badgeStyle = "text-emerald-700 neu-pressed";
+                                    if (item.status === 'rejected') badgeStyle = "text-rose-700 neu-pressed";
                                     const displayTxid = item.txid && item.txid.length > 12 
                                         ? `${item.txid.substring(0, 6)}...${item.txid.substring(item.txid.length - 6)}` 
                                         : (item.txid || 'N/A');
                                     return `
-                                        <div class="flex items-center justify-between border border-slate-800/50 bg-slate-900/40 p-2.5 rounded-xl text-[11px] font-mono mb-2">
+                                        <div class="flex items-center justify-between neu-pressed p-2.5 rounded-xl text-[11px] font-mono font-black mb-2" style="border: 2px solid #f97316;">
                                             <div class="flex flex-col gap-0.5">
-                                                <span class="text-slate-200 font-bold tracking-tight">${item.blockchain || 'Blockchain Network'}</span>
-                                                <span class="text-slate-500 text-[9px] select-all">${displayTxid}</span>
+                                                <span class="text-[#090d16] font-black tracking-tight">${item.blockchain || 'Blockchain Network'}</span>
+                                                <span class="text-[#121c2e] text-[9px] font-black select-all">${displayTxid}</span>
                                             </div>
-                                            <span class="px-2 py-0.5 border rounded-md text-[9px] font-black uppercase tracking-wider ${badgeStyle}">
+                                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${badgeStyle}">
                                                 ${item.status || 'pending'}
                                             </span>
                                         </div>
@@ -392,25 +571,24 @@
         function runRealtimeYieldTickerEngine() {
             if (!currentPlanDaysId || currentPlanDaysId === 'None' || currentPlanDaysId === '' || !planStartedAtTimestamp) {
                 document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-dashed border-white/10 p-6 rounded-3xl text-center shadow-lg">
+                    <div class="neu-flat p-6 rounded-3xl text-center shadow-lg">
                         <span class="text-2xl opacity-40">📊</span>
-                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mt-2">No Active Pipeline Contract</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-[#121c2e] mt-2">No Active Pipeline Contract</h4>
+                        <p class="text-[10px] font-black text-[#121c2e] mt-0.5 max-w-xs mx-auto">Asset distribution framework is currently offline. Navigate to plans section to activate a package layer.</p>
                     </div>`;
                 return;
             }
 
             if (window.isEnginePausedByAdmin) {
                 document.getElementById('dynamicPlanContainer').innerHTML = `
-                    <div class="premium-glass border-amber-500/40 p-5 rounded-[24px] shadow-2xl relative overflow-hidden inner-glow">
-                        <div class="absolute -right-6 -bottom-6 text-6xl text-amber-500/5 select-none font-black font-mono">HOLD</div>
-                        <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                    <div class="neu-flat p-5 rounded-[24px] shadow-2xl relative overflow-hidden">
+                        <div class="flex justify-between items-start pb-3 mb-3">
                             <div>
-                                <span class="text-[8px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">Engine Paused</span>
-                                <h3 class="text-sm font-black uppercase tracking-wider text-white mt-1">Yield Generation Suspended</h3>
+                                <span class="text-[8px] font-black uppercase tracking-widest text-amber-700 neu-pressed px-2 py-0.5 rounded">Engine Paused</span>
+                                <h3 class="text-sm font-black uppercase tracking-wider text-[#090d16] mt-1">Yield Generation Suspended</h3>
                             </div>
                         </div>
-                        <p class="text-[10px] text-amber-200/70">System yields are temporarily halted by administrator command.</p>
+                        <p class="text-[10px] font-black text-amber-800">System yields are temporarily halted by administrator command.</p>
                     </div>`;
                 return;
             }
@@ -442,34 +620,34 @@
             updateCurrencyDisplay();
 
             document.getElementById('dynamicPlanContainer').innerHTML = `
-                <div class="premium-glass border-emerald-500/40 p-5 rounded-[28px] shadow-2xl relative overflow-hidden inner-glow">
-                    <div class="flex justify-between items-start border-b border-white/10 pb-3 mb-3">
+                <div class="neu-flat p-5 rounded-[28px] shadow-2xl relative overflow-hidden">
+                    <div class="flex justify-between items-start pb-3 mb-3">
                         <div>
-                            <span class="text-[8px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">Active Contract Engine</span>
-                            <h3 class="text-xs font-black uppercase tracking-wider text-white mt-1.5">${activePlanConfig.name}</h3>
+                            <span class="text-[8px] font-black uppercase tracking-widest text-emerald-700 neu-pressed px-2.5 py-0.5 rounded-full">Active Contract Engine</span>
+                            <h3 class="text-xs font-black uppercase tracking-wider text-[#090d16] mt-1.5">${activePlanConfig.name}</h3>
                         </div>
-                        <span class="text-[10px] font-black text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-lg animate-pulse">${percentDone}% Completed</span>
+                        <span class="text-[10px] font-black text-emerald-700 neu-pressed px-2 py-0.5 rounded-lg animate-pulse">${percentDone}% Completed</span>
                     </div>
 
                     <div class="space-y-3">
                         <div>
-                            <div class="flex justify-between text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                            <div class="flex justify-between text-[9px] font-black uppercase tracking-wider text-[#121c2e] mb-1">
                                 <span>Cycle Velocity Pipeline</span>
-                                <span class="font-mono text-emerald-400">${countdownText}</span>
+                                <span class="font-mono text-emerald-700 font-black">${countdownText}</span>
                             </div>
-                            <div class="w-full bg-slate-900/80 rounded-full h-2 overflow-hidden border border-white/10 p-0.5">
-                                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-1000" style="width: ${percentDone}%"></div>
+                            <div class="w-full neu-pressed rounded-full h-3 overflow-hidden p-0.5">
+                                <div class="bg-gradient-to-r from-emerald-600 to-teal-500 h-full rounded-full transition-all duration-1000" style="width: ${percentDone}%"></div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 pt-1 text-[10px]">
-                            <div class="bg-black/30 border border-white/5 rounded-xl p-2.5">
-                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Projected Total Gain</span>
-                                <span class="font-mono font-black text-emerald-400">+$${projectedProfitUSD.toFixed(2)} USD</span>
+                            <div class="neu-pressed rounded-xl p-2.5">
+                                <span class="text-[8px] font-black text-[#121c2e] uppercase tracking-widest block">Projected Total Gain</span>
+                                <span class="font-mono font-black text-emerald-700">+$${projectedProfitUSD.toFixed(2)} USD</span>
                             </div>
-                            <div class="bg-black/30 border border-white/5 rounded-xl p-2.5">
-                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Cycle Duration</span>
-                                <span class="font-mono font-black text-slate-200">${activePlanConfig.duration} Days Cycle</span>
+                            <div class="neu-pressed rounded-xl p-2.5">
+                                <span class="text-[8px] font-black text-[#121c2e] uppercase tracking-widest block">Cycle Duration</span>
+                                <span class="font-mono font-black text-[#090d16]">${activePlanConfig.duration} Days Cycle</span>
                             </div>
                         </div>
                     </div>
@@ -477,11 +655,11 @@
         }
 
         function updateCurrencyDisplay() {
-            const currency = document.getElementById('currencySelector').value || 'USD';
+            const currency = selectedCurrencyValue || 'USD';
             const fxRate = FX_MATRIX[currency] || 1.0;
             const convertedBalance = baseAssetBalanceUSD * fxRate;
 
-            const symbolMap = { USD: '$', PHP: '₱', INR: '₹', PKR: '₨', AED: 'د.إ' };
+            const symbolMap = { USD: '$', PHP: '₱', INR: '₹', PKR: '₨', AED: 'د.إ', EUR: '€', GBP: '£', CAD: '$' };
             const symbol = symbolMap[currency] || '$';
 
             const displayElem = document.getElementById('balanceDisplay');
@@ -507,25 +685,25 @@
 
             if (isAccountFrozen) {
                 container.innerHTML = `
-                    <button disabled class="w-full bg-rose-600/40 text-rose-300 border border-rose-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
+                    <button disabled class="w-full neu-pressed text-rose-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest cursor-not-allowed">
                         🔒 Terminal Restricted (Account Frozen)
                     </button>`;
             } else if (isWithdrawRestrained) {
                 container.innerHTML = `
                     <div class="space-y-2">
-                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-center">
-                            <p class="text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-2">⚠️ Remittance Paused by Administration</p>
-                            <button type="button" onclick="openWithdrawBlockModal()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] py-2.5 rounded-xl uppercase tracking-widest shadow-md transition-all cursor-pointer">
+                        <div class="neu-pressed rounded-2xl p-3 text-center">
+                            <p class="text-[10px] text-amber-700 font-black uppercase tracking-wider mb-2">⚠️ Remittance Paused by Administration</p>
+                            <button type="button" onclick="openWithdrawBlockModal()" class="w-full neu-button text-amber-700 font-black text-[10px] py-2.5 rounded-2xl uppercase tracking-widest transition-all cursor-pointer">
                                 View Unlock Instructions 📋
                             </button>
                         </div>
-                        <button disabled class="w-full bg-amber-600/40 text-amber-300 border border-amber-500/30 font-black text-xs py-3.5 rounded-xl uppercase tracking-widest cursor-not-allowed">
+                        <button disabled class="w-full neu-pressed text-amber-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest cursor-not-allowed">
                             Submit Withdrawal (Locked)
                         </button>
                     </div>`;
             } else {
                 container.innerHTML = `
-                    <button type="button" onclick="executeWithdrawalRequestSubmission()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-lg transition-all cursor-pointer">
+                    <button type="button" onclick="executeWithdrawalRequestSubmission()" class="w-full neu-button text-emerald-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest transition-all cursor-pointer">
                         Authorize Outbound Remittance 🚀
                     </button>`;
             }
@@ -563,7 +741,6 @@
                 coreTab.classList.replace('block', 'hidden');
                 withdrawTab.classList.replace('hidden', 'block');
                 
-                // Automatically open the block instructions popup if withdrawal is restrained
                 if (isWithdrawRestrained) {
                     openWithdrawBlockModal();
                 }
@@ -583,16 +760,15 @@
                 return;
             }
 
-            const networkSelector = document.getElementById('withdrawNetworkSelector');
+            const network = selectedNetworkValue || 'TRC20';
             const addressInput = document.getElementById('withdrawAddressInput');
             const amountInput = document.getElementById('withdrawAmountInput');
 
-            const network = networkSelector ? networkSelector.value : 'TRC20';
             const address = addressInput ? addressInput.value.trim() : '';
             const amount = amountInput ? parseFloat(amountInput.value) : 0;
 
             if (!address) {
-                triggerAppAlert('Validation Fault', 'Enter a valid target destination address.', '⚠️');
+                triggerAppAlert('Validation Fault', 'Enter a valid target destination address.', '⚠');
                 return;
             }
             if (isNaN(amount) || amount <= 0) {
@@ -641,25 +817,33 @@
 
             if (!mockWithdrawalLedgerHistory || mockWithdrawalLedgerHistory.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-6 border border-dashed border-white/10 rounded-2xl bg-black/10">
-                        <p class="text-[11px] font-medium text-slate-400">No archival remittance parameters linked to this instance node.</p>
+                    <div class="text-center py-6 neu-pressed rounded-2xl" style="border: 2px solid #f97316;">
+                        <p class="text-[11px] font-black text-[#121c2e]">No archival remittance parameters linked to this instance node.</p>
                     </div>`;
                 return;
             }
 
             let html = '';
             mockWithdrawalLedgerHistory.forEach(item => {
-                let badgeColor = "text-amber-400 border-amber-500/30 bg-amber-500/10";
-                if (item.status === 'approved' || item.status === 'completed') badgeColor = "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
-                if (item.status === 'rejected' || item.status === 'declined') badgeColor = "text-rose-400 border-rose-500/30 bg-rose-500/10";
+                let badgeColor = "text-amber-700 neu-pressed";
+                let entryBorderColor = "#f97316";
+
+                if (item.status === 'approved' || item.status === 'completed') {
+                    badgeColor = "text-emerald-700 neu-pressed";
+                    entryBorderColor = "#10b981";
+                }
+                if (item.status === 'rejected' || item.status === 'declined') {
+                    badgeColor = "text-rose-700 neu-pressed";
+                    entryBorderColor = "#ef4444";
+                }
 
                 html += `
-                    <div class="flex items-center justify-between border border-white/10 bg-black/40 p-3 rounded-2xl text-[11px]">
+                    <div class="flex items-center justify-between neu-pressed p-3 rounded-2xl text-[11px]" style="border: 2px solid ${entryBorderColor}; box-shadow: inset 6px 6px 12px #7a9fc5, inset -6px -6px 12px #ffffff;">
                         <div>
-                            <span class="font-black text-white">$${parseFloat(item.amount).toFixed(2)} USD</span>
-                            <span class="text-[9px] text-slate-400 block">${item.network || 'USDT'} &bull; ${item.address ? (item.address.substring(0, 6) + '...' + item.address.substring(item.address.length - 4)) : 'N/A'}</span>
+                            <span class="font-black text-[#090d16]">$${parseFloat(item.amount).toFixed(2)} USD</span>
+                            <span class="text-[9px] text-[#121c2e] font-black block">${item.network || 'USDT'} &bull; ${item.address ? (item.address.substring(0, 6) + '...' + item.address.substring(item.address.length - 4)) : 'N/A'}</span>
                         </div>
-                        <span class="text-[8px] uppercase font-black tracking-widest px-2 py-0.5 rounded border ${badgeColor}">${item.status}</span>
+                        <span class="text-[8px] uppercase font-black tracking-widest px-2 py-0.5 rounded ${badgeColor}">${item.status}</span>
                     </div>`;
             });
             container.innerHTML = html;

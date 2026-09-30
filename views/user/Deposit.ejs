@@ -1,48 +1,63 @@
-<div id="topupGatewayModal" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 hidden flex-col items-center justify-center p-4">
-    <div class="w-full max-w-sm premium-bg-blend border border-white/20 rounded-[32px] p-6 shadow-2xl space-y-5 relative">
-        <button onclick="toggleTopupModal(false)" class="absolute top-4 right-5 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+<div id="topupGatewayModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex-col items-center justify-center p-4">
+    <div class="w-full max-w-sm neu-flat border-2 border-[#f97316] rounded-[32px] p-6 shadow-2xl space-y-5 relative" style="box-shadow: 12px 12px 24px #04060a, -12px -12px 24px #0e1422;">
+        <button onclick="toggleTopupModal(false)" class="absolute top-4 right-5 text-[#121c2e] hover:text-[#090d16] text-xl font-black">&times;</button>
         
         <div>
-            <h4 class="text-xs font-black uppercase tracking-wider text-white">Deposit Liquid Capital</h4>
-            <p class="text-[10px] text-slate-400 mt-0.5">Supply liquidity tokens directly to your verified active console pipeline nodes.</p>
+            <h4 class="text-xs font-black uppercase tracking-wider text-[#090d16]">Deposit Liquid Capital</h4>
+            <p class="text-[10px] font-black text-[#121c2e] mt-0.5">Supply liquidity tokens directly to your verified active console pipeline nodes.</p>
         </div>
         
         <div class="space-y-4">
+            <!-- Custom Network Dropdown Field -->
+            <div class="relative custom-dropdown-container">
+                <label class="block text-[9px] font-black uppercase tracking-widest text-[#121c2e] mb-1">Select Active Network Protocol</label>
+                <div class="w-full neu-pressed rounded-2xl p-3.5 flex justify-between items-center cursor-pointer select-none" onclick="toggleCustomDropdown(event, 'depositNetworkDropdownOptions')">
+                    <span id="selectedDepositNetworkLabel" class="text-xs font-mono font-black text-[#090d16]">TRON Network (TRC20)</span>
+                    <span class="text-xs text-[#121c2e] font-black">&#9662;</span>
+                </div>
+                
+                <div id="depositNetworkDropdownOptions" class="custom-dropdown-options absolute left-0 right-0 mt-2 neu-flat rounded-2xl overflow-hidden z-50 p-2 space-y-1 shadow-2xl" style="border: 2px solid #f97316;">
+                    <div onclick="selectDepositNetworkOption('TRC20', 'TRON Network (TRC20)')" class="neu-button p-3 rounded-xl text-xs font-mono font-black text-[#090d16] cursor-pointer transition-all">TRON Network (TRC20)</div>
+                    <div onclick="selectDepositNetworkOption('BEP20', 'Binance Smart Chain (BEP20)')" class="neu-button p-3 rounded-xl text-xs font-mono font-black text-[#090d16] cursor-pointer transition-all">Binance Smart Chain (BEP20)</div>
+                    <div onclick="selectDepositNetworkOption('ERC20', 'Ethereum Network (ERC20)')" class="neu-button p-3 rounded-xl text-xs font-mono font-black text-[#090d16] cursor-pointer transition-all">Ethereum Network (ERC20)</div>
+                </div>
+            </div>
+
+            <div class="neu-pressed border-2 border-[#f97316] rounded-2xl p-4 text-center space-y-2">
+                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700">Target Transfer Address</span>
+                <p id="topupWalletString" class="text-xs font-mono font-black text-[#090d16] break-all select-all py-1">Loading wallet parameter...</p>
+                <button onclick="copyTopupWalletToClipboard()" class="w-full neu-button text-emerald-700 font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition-all cursor-pointer">Copy Address 📋</button>
+            </div>
+
             <div>
-                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Select Active Network Protocol</label>
-                <select id="userDepositNetworkSelector" onchange="synchronizeActiveWalletDisplayString()" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-emerald-500/40">
-                    <option value="TRC20">TRON Network (TRC20)</option>
-                    <option value="BEP20">Binance Smart Chain (BEP20)</option>
-                    <option value="ERC20">Ethereum Network (ERC20)</option>
-                </select>
+                <label class="block text-[9px] font-black uppercase tracking-widest text-[#121c2e] mb-1">Transaction Proof Index (TXID / Hash)</label>
+                <input type="text" id="topupTxidInput" placeholder="Paste generated blockchain TXID code..." class="w-full neu-pressed border-2 border-[#f97316] rounded-xl px-3 py-3 text-xs font-mono font-black text-[#090d16] focus:outline-none placeholder-[#121c2e]/40">
             </div>
 
-            <div class="bg-black/40 border border-white/10 rounded-2xl p-4 text-center space-y-2">
-                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-400">Target Transfer Address</span>
-                <p id="topupWalletString" class="text-xs font-mono font-bold text-white break-all select-all py-1">Loading wallet parameter...</p>
-                <button onclick="copyTopupWalletToClipboard()" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] px-4 py-1.5 rounded-xl uppercase tracking-wider transition-all">Copy Address 📋</button>
-            </div>
-
-            <div>
-                <label class="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Transaction Proof Index (TXID / Hash)</label>
-                <input type="text" id="topupTxidInput" placeholder="Paste generated blockchain TXID code..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-3 text-xs font-medium text-white focus:outline-none focus:border-emerald-500/40">
-            </div>
-
-            <button onclick="submitTopupTxidProof()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-lg transition-all cursor-pointer">
+            <button onclick="submitTopupTxidProof()" class="w-full neu-button text-emerald-700 font-black text-xs py-3.5 rounded-2xl uppercase tracking-widest transition-all cursor-pointer">
                 Submit Deposit Signature 🚀
             </button>
         </div>
 
-        <div class="border-t border-white/10 pt-4 space-y-2">
-            <h5 class="text-[10px] font-black uppercase tracking-wider text-slate-300">Transaction History Log</h5>
+        <div class="border-t border-[#f97316]/30 pt-4 space-y-2">
+            <h5 class="text-[10px] font-black uppercase tracking-wider text-[#090d16]">Transaction History Log</h5>
             <div id="userDepositHistoryContainer" class="max-h-36 overflow-y-auto custom-scroll space-y-2 pr-1">
-                <div class="text-center text-[11px] text-slate-500 py-2">No transaction records logged.</div>
+                <div class="text-center text-[11px] font-black text-[#121c2e] py-2">No transaction records logged.</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    let selectedDepositNetworkValue = 'TRC20';
+
+    function selectDepositNetworkOption(val, labelText) {
+        selectedDepositNetworkValue = val;
+        document.getElementById('selectedDepositNetworkLabel').innerText = labelText;
+        document.getElementById('depositNetworkDropdownOptions').classList.remove('open');
+        synchronizeActiveWalletDisplayString();
+    }
+
     function toggleTopupModal(show) {
         const modal = document.getElementById('topupGatewayModal');
         if (!modal) return;
@@ -55,74 +70,71 @@
     }
 
     function submitTopupTxidProof() {
-    const network = document.getElementById('userDepositNetworkSelector').value;
-    const txid = document.getElementById('topupTxidInput').value.trim();
+        const network = selectedDepositNetworkValue || 'TRC20';
+        const txid = document.getElementById('topupTxidInput').value.trim();
 
-    if (!txid) {
-        if (typeof triggerAppAlert === 'function') {
-            triggerAppAlert('Validation Error', 'Please enter a valid TXID or hash.', '⚠️');
-        } else {
-            alert('Please enter a valid TXID or hash.');
+        if (!txid) {
+            if (typeof triggerAppAlert === 'function') {
+                triggerAppAlert('Validation Error', 'Please enter a valid TXID or hash.', '⚠️️');
+            } else {
+                alert('Please enter a valid TXID or hash.');
+            }
+            return;
         }
-        return;
+
+        fetch('/admin/report-deposit-proof', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blockchain: network, txid: txid })
+        })
+        .then(async res => {
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return res.json();
+            } else {
+                throw new Error(`Server returned status ${res.status}`);
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                if (typeof triggerAppAlert === 'function') {
+                    triggerAppAlert('Request Sent', 'Your transaction proof has been submitted for review.', '✨');
+                } else {
+                    alert('Your transaction proof has been submitted for review.');
+                }
+                document.getElementById('topupTxidInput').value = '';
+                toggleTopupModal(false);
+                if (typeof syncData === 'function') {
+                    syncData();
+                }
+            } else {
+                if (typeof triggerAppAlert === 'function') {
+                    triggerAppAlert('Request Denied', data.msg || 'Transaction rejected by system.', '❌');
+                } else {
+                    alert(data.msg || 'Transaction rejected by system.');
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Deposit submission network failure:', err);
+            if (typeof triggerAppAlert === 'function') {
+                triggerAppAlert('Network Failure', 'Failed to dispatch deposit proof payload.', '❌');
+            } else {
+                alert('Failed to dispatch deposit proof payload.');
+            }
+        });
     }
 
-    // MATCHED ROUTE: /admin/report-deposit-proof
-    fetch('/admin/report-deposit-proof', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blockchain: network, txid: txid })
-    })
-    .then(async res => {
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            return res.json();
-        } else {
-            throw new Error(`Server returned status ${res.status}`);
-        }
-    })
-    .then(data => {
-        if (data.success) {
-            if (typeof triggerAppAlert === 'function') {
-                triggerAppAlert('Request Sent', 'Your transaction proof has been submitted for review.', '✨');
-            } else {
-                alert('Your transaction proof has been submitted for review.');
-            }
-            document.getElementById('topupTxidInput').value = '';
-            toggleTopupModal(false);
-            if (typeof syncData === 'function') {
-                syncData();
-            }
-        } else {
-            if (typeof triggerAppAlert === 'function') {
-                triggerAppAlert('Request Denied', data.msg || 'Transaction rejected by system.', '❌');
-            } else {
-                alert(data.msg || 'Transaction rejected by system.');
-            }
-        }
-    })
-    .catch(err => {
-        console.error('Deposit submission network failure:', err);
-        if (typeof triggerAppAlert === 'function') {
-            triggerAppAlert('Network Failure', 'Failed to dispatch deposit proof payload.', '❌');
-        } else {
-            alert('Failed to dispatch deposit proof payload.');
-        }
-    });
-}
-
     function synchronizeActiveWalletDisplayString() {
-        const networkSelector = document.getElementById('userDepositNetworkSelector');
         const targetWalletTextElement = document.getElementById('topupWalletString');
-        
-        if (!networkSelector || !targetWalletTextElement) return;
+        if (!targetWalletTextElement) return;
 
-        const activeNetworkSelection = networkSelector.value;
+        const activeNetworkSelection = selectedDepositNetworkValue;
         const gatewayList = (typeof userAssignedGatewayList !== 'undefined' && Array.isArray(userAssignedGatewayList)) ? userAssignedGatewayList : [];
 
         if (gatewayList.length === 0) {
             targetWalletTextElement.innerText = "No active gateway address found";
-            targetWalletTextElement.classList.add('text-rose-400');
+            targetWalletTextElement.classList.add('text-rose-700');
             return;
         }
 
@@ -135,10 +147,10 @@
 
         if (matchedConfig && matchedConfig.address) {
             targetWalletTextElement.innerText = matchedConfig.address;
-            targetWalletTextElement.classList.remove('text-rose-400');
+            targetWalletTextElement.classList.remove('text-rose-700');
         } else {
             targetWalletTextElement.innerText = `No active address assigned for ${activeNetworkSelection}`;
-            targetWalletTextElement.classList.add('text-rose-400');
+            targetWalletTextElement.classList.add('text-rose-700');
         }
     }
 

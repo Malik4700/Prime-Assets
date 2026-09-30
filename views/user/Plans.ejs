@@ -6,71 +6,117 @@
     <title>Investment Portfolios | PRIME ASSETS HOLDINGS 4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg-color: #e2ecf8;
+            --neu-light: #ffffff;
+            --neu-dark: #7a9fc5;
+            --neu-text: #090d16;
+            --neu-accent: #f97316;
+        }
         body {
-            background-image: linear-gradient(rgba(4, 23, 19, 0.45), rgba(2, 15, 12, 0.50)), url('/BG.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-color: var(--bg-color);
+            color: var(--neu-text);
+            font-family: 'Bahnschrift', 'Outfit', sans-serif;
+            font-weight: 700;
         }
-        .premium-glass {
-            background: rgba(4, 25, 20, 0.70);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+
+        /* Neumorphic Design System Styles (Matching Homepage & Deposit Modal) */
+        .neu-flat {
+            background: var(--bg-color);
+            box-shadow: 24px 24px 48px #7a9fc5, -24px -24px 48px #ffffff, inset 3px 3px 6px rgba(255,255,255,0.9), inset -3px -3px 6px rgba(122,159,197,0.6);
+            border: 2px solid #f97316;
         }
-        .inner-glow {
-            box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+        .neu-pressed {
+            background: var(--bg-color);
+            box-shadow: inset 10px 10px 20px #7a9fc5, inset -10px -10px 20px #ffffff;
+            border: 2px solid #f97316;
         }
-        .text-glow {
-            text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        .neu-button {
+            background: var(--bg-color);
+            box-shadow: 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);
+            border: 2px solid #f97316;
+            transition: all 0.2s ease;
         }
+        .neu-button:active {
+            box-shadow: inset 8px 8px 16px #7a9fc5, inset -8px -8px 16px #ffffff;
+            border-color: #c2410c;
+        }
+
+        /* Animated Multicolor Glowing Border for Promo Offers */
+        @keyframes multicolorGlow {
+            0% { border-color: #f97316; box-shadow: 0 0 15px rgba(249, 115, 22, 0.5), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            33% { border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            66% { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+            100% { border-color: #f97316; box-shadow: 0 0 15px rgba(249, 115, 22, 0.5), 12px 12px 24px #7a9fc5, -12px -12px 24px #ffffff; }
+        }
+        .promo-multicolor-border {
+            border: 3px solid #f97316;
+            animation: multicolorGlow 4s infinite;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(122,159,197,0.1);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(16, 185, 129, 0.3);
+            background: rgba(249, 115, 22, 0.8);
             border-radius: 99px;
         }
     </style>
 </head>
-<body class="text-slate-200 min-h-screen font-sans antialiased select-none pb-24 custom-scrollbar">
+<body class="text-[#090d16] min-h-screen flex flex-col font-sans antialiased pb-28 select-none relative overflow-x-hidden custom-scrollbar">
 
-    <div id="customAlert" class="fixed top-6 left-1/2 -translate-x-1/2 z-[99999] w-[90%] max-w-md bg-slate-900/95 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-4 shadow-2xl flex items-start gap-3 transform translate-y-[-160%] transition-transform duration-500 inner-glow">
-        <div id="alertIcon" class="bg-emerald-500/10 text-emerald-400 p-2 rounded-xl text-lg font-bold">✨</div>
+    <!-- Custom Alert Banner -->
+    <div id="customAlert" class="fixed top-6 left-1/2 -translate-x-1/2 z-[99999] w-[90%] max-w-md neu-flat border-2 border-[#f97316] rounded-2xl p-4 shadow-2xl flex items-start gap-3 transform translate-y-[-160%] transition-transform duration-500">
+        <div id="alertIcon" class="neu-pressed text-emerald-700 p-2 rounded-xl text-lg font-bold">✨</div>
         <div class="flex-grow">
-            <h4 id="alertTitle" class="font-black text-xs text-white uppercase tracking-wider">System Broadcast</h4>
-            <p id="alertMessage" class="text-[11px] text-slate-300 font-medium mt-0.5 leading-relaxed">Cluster synchronization successful.</p>
+            <h4 id="alertTitle" class="font-black text-xs text-[#090d16] uppercase tracking-wider">System Broadcast</h4>
+            <p id="alertMessage" class="text-[11px] text-[#121c2e] font-black mt-0.5 leading-relaxed">Cluster synchronization successful.</p>
         </div>
-        <button onclick="dismissAlert()" class="text-slate-500 hover:text-slate-300 font-black text-sm">&times;</button>
+        <button onclick="dismissAlert()" class="text-[#121c2e] hover:text-[#090d16] font-black text-sm">&times;</button>
     </div>
 
-    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl inner-glow transform transition-transform scale-100">
-            <div class="bg-emerald-500/10 text-emerald-400 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto text-xl mb-4">🚀</div>
-            <h3 class="font-black text-white text-sm uppercase tracking-wider mb-2">Confirm Portfolio Switch</h3>
-            <p id="confirmModalText" class="text-xs text-slate-400 font-medium leading-relaxed mb-6">Are you sure you want to initialize this configuration parameters layout handle?</p>
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[9999] hidden items-center justify-center p-4">
+        <div class="neu-flat border-2 border-[#f97316] rounded-[32px] max-w-sm w-full p-6 text-center shadow-2xl transform transition-transform scale-100">
+            <div class="neu-pressed text-emerald-700 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto text-xl mb-4 font-black">🚀</div>
+            <h3 class="font-black text-[#090d16] text-sm uppercase tracking-wider mb-2">Confirm Portfolio Switch</h3>
+            <p id="confirmModalText" class="text-xs text-[#121c2e] font-black leading-relaxed mb-6">Are you sure you want to initialize this configuration parameters layout handle?</p>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeConfirmModal(false)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider py-3 rounded-xl transition-colors">Cancel</button>
-                <button onclick="closeConfirmModal(true)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-colors shadow-lg shadow-emerald-900/30">Confirm</button>
+                <button onclick="closeConfirmModal(false)" class="neu-button text-[#121c2e] font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-colors">Cancel</button>
+                <button onclick="closeConfirmModal(true)" class="neu-button text-emerald-700 font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-colors">Confirm</button>
             </div>
         </div>
     </div>
 
-    <div class="p-6 max-w-5xl mx-auto space-y-6">
-        
-        <div class="flex items-center justify-between bg-slate-900/40 border border-slate-800/60 p-5 rounded-2xl backdrop-blur-md">
+    <!-- Homepage-Matched Header (Fixed width alignment) -->
+   <header class="w-full neu-flat sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-md">
+    <div class="flex items-center space-x-2.5">
+        <div class="w-14 h-10 neu-pressed rounded-2xl flex items-center justify-center text-emerald-700 font-black text-sm">PAH</div>
+        <div>
+            <span class="block text-xs font-black tracking-widest text-[#090d16] uppercase leading-none">PRIME ASSETS HOLDINGS 4.0</span>
+            <span class="text-[9px] text-emerald-700 font-black uppercase tracking-widest">secure 🔒</span>
+        </div>
+    </div>
+    <span class="text-[9px] neu-pressed rainbow-border text-emerald-700 px-3 py-1.5 rounded-full font-black uppercase tracking-widest animate-pulse">Available Plans</span>
+</header>
+
+    <!-- Main Content Container -->
+    <main class="w-full max-w-md mx-auto px-4 pt-6 flex-grow space-y-6">
+
+        <!-- Header Balance Container -->
+        <div class="flex items-center justify-between neu-flat border-2 border-[#f97316] p-5 rounded-3xl shadow-xl">
             <div>
-                <h2 class="text-xl font-black text-white tracking-tight uppercase flex items-center gap-1.5">
-                    Prime Assets Tiers <span class="text-emerald-400 text-glow">⚡</span>
+                <h2 class="text-base font-black text-[#090d16] tracking-tight uppercase flex items-center gap-1.5">
+                    Prime Assets Tiers <span class="text-emerald-700">⚡</span>
                 </h2>
-                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Unlock peak performance, one threshold at a time.</p>
+                <p class="text-[10px] text-[#121c2e] font-black mt-0.5">Unlock peak performance, one threshold at a time.</p>
             </div>
-            <div class="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-right">
-                <span class="text-[8px] uppercase font-black tracking-wider text-slate-400 block">My Balance</span>
-                <span class="text-sm font-black text-emerald-400 tracking-tight text-glow font-mono">
+            <div class="neu-pressed border-2 border-[#f97316] px-3.5 py-2 rounded-2xl text-right">
+                <span class="text-[8px] uppercase font-black tracking-wider text-[#121c2e] block">My Balance</span>
+                <span class="text-xs font-black text-emerald-700 tracking-tight font-mono">
                     $<%= (typeof user !== 'undefined' && user.balance) ? parseFloat(user.balance).toFixed(2) : '0.00' %> USD
                 </span>
             </div>
@@ -84,12 +130,12 @@
             %>
 
             <% if (isPendingRequest) { %>
-                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg backdrop-blur-md">
+                <div class="neu-flat border-2 border-amber-500 rounded-2xl p-4 flex items-center justify-between shadow-lg">
                     <div class="flex items-center gap-3">
                         <span class="text-lg animate-pulse">📩</span>
                         <div>
-                            <h4 class="text-[11px] font-black text-white uppercase tracking-wider">Order Processing</h4>
-                            <p class="text-[10px] text-amber-300 font-medium">Pending validation: <span class="font-bold text-white"><%= user.requestedPlanName || 'Portfolio Track' %></span>. Wait for slot validity handles.</p>
+                            <h4 class="text-[11px] font-black text-[#090d16] uppercase tracking-wider">Order Processing</h4>
+                            <p class="text-[10px] text-amber-800 font-black">Pending validation: <span class="font-black text-[#090d16]"><%= user.requestedPlanName || 'Portfolio Track' %></span>. Wait for slot validity handles.</p>
                         </div>
                     </div>
                 </div>
@@ -100,38 +146,38 @@
                 <div class="mb-8">
                     <div class="flex items-center space-x-2 mb-4">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        <h2 class="text-xs font-black uppercase tracking-widest text-amber-400 font-mono">Limited Time Special Offers</h2>
+                        <h2 class="text-xs font-black uppercase tracking-widest text-amber-800 font-mono">Limited Time Special Offers</h2>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="grid grid-cols-1 gap-5">
                         <% promoPlans.forEach(plan => { %>
-                            <div class="relative overflow-hidden bg-slate-950/80 border-2 border-amber-500 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all duration-300 backdrop-blur-xl">
+                            <div class="relative overflow-hidden neu-flat promo-multicolor-border rounded-3xl p-5 flex flex-col justify-between space-y-4 transition-all duration-300">
                                 
                                 <!-- Decorative Promo Badge -->
-                                <div class="absolute -top-2.2 right-4 bg-amber-500 text-slate-950 font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md">
+                                <div class="absolute -top-1 right-4 bg-amber-500 text-slate-950 font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md">
                                     PROMO OFFER
                                 </div>
 
                                 <div>
-                                    <div class="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-3">
+                                    <div class="flex items-center justify-between border-b border-[#f97316]/30 pb-3 mb-3">
                                         <div>
-                                            <span class="text-[9px] uppercase font-black tracking-widest text-amber-400 block mb-0.5">Special Tier</span>
-                                            <h3 class="font-black text-xs text-white tracking-wide uppercase"><%= plan.name %></h3>
+                                            <span class="text-[9px] uppercase font-black tracking-widest text-amber-800 block mb-0.5">Special Tier</span>
+                                            <h3 class="font-black text-xs text-[#090d16] tracking-wide uppercase"><%= plan.name %></h3>
                                         </div>
-                                        <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/30"><%= plan.durationDays %> Days</span>
+                                        <span class="text-[10px] font-mono font-black text-amber-800 neu-pressed px-2.5 py-1 rounded-xl border border-amber-500/30"><%= plan.durationDays %> Days</span>
                                     </div>
 
-                                    <p class="text-[10px] text-slate-400 font-medium leading-relaxed mb-4"><%= plan.description %></p>
+                                    <p class="text-[10px] text-[#121c2e] font-black leading-relaxed mb-4"><%= plan.description %></p>
 
                                     <!-- Price and Profit Section -->
-                                    <div class="grid grid-cols-2 gap-3 bg-slate-950/30 border border-slate-900 p-3 rounded-xl mb-4">
+                                    <div class="grid grid-cols-2 gap-3 neu-pressed border-2 border-amber-500/40 p-3 rounded-2xl mb-4">
                                         <div>
-                                            <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">Activation Cost</span>
-                                            <span class="text-xs font-black text-white font-mono">$<%= (plan.price || 0).toFixed(2) %> USD</span>
+                                            <span class="text-[8px] uppercase font-black text-[#121c2e] block tracking-wider">Activation Cost</span>
+                                            <span class="text-xs font-black text-[#090d16] font-mono">$<%= (plan.price || 0).toFixed(2) %> USD</span>
                                         </div>
                                         <div>
-                                            <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">EOP Benefit</span>
-                                            <span class="text-xs font-black text-amber-400 text-glow font-mono"><%= plan.profitPercent %>% Total Profit</span>
+                                            <span class="text-[8px] uppercase font-black text-[#121c2e] block tracking-wider">EOP Benefit</span>
+                                            <span class="text-xs font-black text-amber-800 font-mono"><%= plan.profitPercent %>% Total Profit</span>
                                         </div>
                                     </div>
                                 </div>
@@ -139,7 +185,7 @@
                                 <!-- Buy Action Button -->
                                 <button 
                                     onclick="requestPromoBuy('<%= plan._id %>', '<%= plan.name %>', '<%= plan.price %>', '<%= plan.durationDays %>')"
-                                    class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 text-[11px] font-black uppercase tracking-widest rounded-xl transition duration-200 shadow-lg shadow-amber-500/20 active:scale-95 transform"
+                                    class="w-full py-3 neu-button text-amber-800 text-[11px] font-black uppercase tracking-widest rounded-2xl transition duration-200 cursor-pointer"
                                 >
                                     Acquire Promo Tier
                                 </button>
@@ -150,7 +196,7 @@
             <% } %>
 
             <!-- Standard Static Tiers Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 gap-5">
                 <% 
                 const staticTiers = [
                     { id: "7", tier: "Tier 1 (Beginner Only)", name: "7 Days Beginner Plan", cost: 35, yield: "20% Total Profit", desc: "Entry-level starter array providing a baseline yield track configuration over 7 Days. One-time purchase limits apply.", duration: "7 Days" },
@@ -167,48 +213,48 @@
                     const hasBoughtBeginnerBefore = (p.id === '7' && typeof user !== 'undefined' && (user.hasBoughtBeginner === true || user.hasBoughtBeginner === 'true'));
                     const isFadedAndDisabled = (isUserLockedGlobal && !isThisActiveRunning) || hasBoughtBeginnerBefore;
                 %>
-                    <div class="premium-glass rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 inner-glow relative group <%= isFadedAndDisabled ? 'opacity-35 pointer-events-none filter blur-[0.5px]' : '' %> <%= isThisActiveRunning ? 'border-emerald-500 bg-slate-900/90' : 'hover:border-slate-700/60' %>">
+                    <div class="neu-flat rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 relative group <%= isFadedAndDisabled ? 'opacity-35 pointer-events-none filter blur-[0.5px]' : '' %> <%= isThisActiveRunning ? 'border-2 border-emerald-500' : 'border-2 border-[#f97316]' %>">
                         
                         <% if (isThisActiveRunning) { %>
-                            <div class="absolute -top-2.5 right-4 bg-emerald-500 text-slate-950 font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md text-glow">Running</div>
+                            <div class="absolute -top-2.5 right-4 bg-emerald-600 text-white font-black text-[8px] uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-md">Running</div>
                         <% } %>
 
                         <div>
-                             <div class="flex items-center justify-between border-b border-slate-800/60 pb-3 mb-3">
+                             <div class="flex items-center justify-between border-b border-[#f97316]/30 pb-3 mb-3">
                                 <div>
-                                    <span class="text-[9px] uppercase font-black tracking-widest text-emerald-400 block mb-0.5"><%= p.tier %></span>
-                                    <h3 class="font-black text-xs text-white tracking-wide uppercase"><%= p.name %></h3>
+                                    <span class="text-[9px] uppercase font-black tracking-widest text-emerald-700 block mb-0.5"><%= p.tier %></span>
+                                    <h3 class="font-black text-xs text-[#090d16] tracking-wide uppercase"><%= p.name %></h3>
                                 </div>
-                                <span class="text-[10px] font-mono font-bold text-slate-400 bg-slate-950/40 px-2 py-0.5 rounded-lg border border-slate-800/50"><%= p.duration %></span>
+                                <span class="text-[10px] font-mono font-black text-[#121c2e] neu-pressed px-2.5 py-1 rounded-xl border border-[#f97316]/30"><%= p.duration %></span>
                             </div>
 
-                            <p class="text-[10px] text-slate-400 font-medium leading-relaxed mb-4"><%= p.desc %></p>
+                            <p class="text-[10px] text-[#121c2e] font-black leading-relaxed mb-4"><%= p.desc %></p>
 
-                            <div class="grid grid-cols-2 gap-3 bg-slate-950/30 border border-slate-900 p-3 rounded-xl mb-4">
+                            <div class="grid grid-cols-2 gap-3 neu-pressed border-2 border-[#f97316]/30 p-3 rounded-2xl mb-4">
                                 <div>
-                                    <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">Activation Cost</span>
-                                    <span class="text-xs font-black text-white font-mono">$<%= p.cost %>.00 USD</span>
+                                    <span class="text-[8px] uppercase font-black text-[#121c2e] block tracking-wider">Activation Cost</span>
+                                    <span class="text-xs font-black text-[#090d16] font-mono">$<%= p.cost %>.00 USD</span>
                                 </div>
                                 <div>
-                                    <span class="text-[8px] uppercase font-bold text-slate-500 block tracking-wider">EOP Benefit</span>
-                                    <span class="text-xs font-black text-emerald-400 text-glow font-mono"><%= p.yield %></span>
+                                    <span class="text-[8px] uppercase font-black text-[#121c2e] block tracking-wider">EOP Benefit</span>
+                                    <span class="text-xs font-black text-emerald-700 font-mono"><%= p.yield %></span>
                                 </div>
                             </div>
                         </div>
 
                         <div>
                             <% if (isThisActiveRunning) { %>
-                                <button disabled class="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-[11px] uppercase py-2.5 rounded-xl cursor-not-allowed tracking-widest">
+                                <button disabled class="w-full neu-pressed text-emerald-700 font-black text-[11px] uppercase py-3 rounded-2xl cursor-not-allowed tracking-widest">
                                     Currently Running
                                 </button>
                             <% } else if (hasBoughtBeginnerBefore) { %>
-                                <button disabled class="w-full bg-rose-500/10 border border-rose-500/20 text-rose-400 font-black text-[11px] uppercase py-2.5 rounded-xl cursor-not-allowed tracking-widest">
+                                <button disabled class="w-full neu-pressed text-rose-700 font-black text-[11px] uppercase py-3 rounded-2xl cursor-not-allowed tracking-widest">
                                     Limit Exceeded
                                 </button>
                             <% } else { %>
                                 <button 
                                     onclick="initiatePlanBuyWorkflow('<%= p.id %>', '<%= p.name %>', '<%= p.cost %>')" 
-                                    class="w-full bg-slate-950 hover:bg-emerald-600 border border-slate-800 hover:border-emerald-500 text-slate-300 hover:text-white font-black text-[11px] uppercase py-2.5 rounded-xl transition-all duration-300 transform active:scale-95 tracking-widest">
+                                    class="w-full neu-button text-emerald-700 font-black text-[11px] uppercase py-3 rounded-2xl transition-all duration-300 transform active:scale-95 tracking-widest cursor-pointer">
                                     Click To Buy Now
                                 </button>
                             <% } %>
@@ -217,20 +263,39 @@
                 <% } %>
             </div>
         </div>
-    </div>
+    </main>
 
-    <nav class="fixed bottom-0 inset-x-0 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 px-6 py-3 flex justify-around items-center z-30 shadow-2xl">
-        <a href="/user/home" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-emerald-400 font-bold transition-colors">
-            <span class="text-xl">🏠</span><span class="text-[9px] uppercase tracking-wider font-black">Home</span>
+    <!-- Bottom Navigation Bar with Glassmorphic Round Buttons and Solid Green Active Border -->
+    <nav class="fixed bottom-0 inset-x-0 neu-flat px-4 py-3 flex justify-around items-center z-30 shadow-2xl" style="box-shadow: 0 -15px 30px #7a9fc5, 0 15px 30px #ffffff, inset 2px 2px 4px rgba(255,255,255,0.9);">
+        
+        <!-- Home Button (Glassmorphic Round) -->
+        <a href="/user/home" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">🏠</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Home</span>
         </a>
-        <a href="/user/plans" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">📊</span><span class="text-[9px] uppercase tracking-wider font-black">Plans</span>
+
+        <!-- Plans Button (Active State with Solid Green Border) -->
+        <a href="/user/plans" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-emerald-500 text-emerald-700 font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff] transform -translate-y-1 transition-all">
+            <span class="text-lg leading-none">📊</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Plans</span>
         </a>
-        <a href="/admin/updates" class="flex flex-col items-center space-y-0.5 text-emerald-400 font-bold">
-            <span class="text-xl drop-shadow text-glow">🔔</span><span class="text-[9px] uppercase tracking-wider font-black text-glow">Updates</span>
+
+        <!-- Updates Button (Glassmorphic Round) -->
+        <a href="/admin/updates" class="relative flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">🔔</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Updates</span>
+            <% if (typeof hasUnreadUpdates !== 'undefined' && hasUnreadUpdates) { %>
+                <span class="absolute top-1 right-2 flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+            <% } %>
         </a>
-        <a href="/user/profile" class="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-200 transition-colors font-bold">
-            <span class="text-xl">👤</span><span class="text-[9px] uppercase tracking-wider font-black">Profile</span>
+
+        <!-- Profile Button (Glassmorphic Round) -->
+        <a href="/user/profile" class="flex flex-col items-center justify-center w-14 h-14 rounded-full bg-[#e2ecf8]/70 backdrop-blur-md border-2 border-[#f97316]/40 text-[#121c2e] hover:text-[#090d16] hover:border-emerald-500 transition-all font-black shadow-[4px_4px_10px_#7a9fc5,-4px_-4px_10px_#ffffff]">
+            <span class="text-lg leading-none">👤</span>
+            <span class="text-[7px] uppercase tracking-wider font-black mt-0.5">Profile</span>
         </a>
     </nav>
 
@@ -299,67 +364,63 @@
         }
 
         function closeConfirmModal(isConfirmed) {
-            document.getElementById('confirmModal').classList.replace('hidden', 'flex');
+            document.getElementById('confirmModal').classList.replace('flex', 'hidden');
             if (isConfirmed && confirmationSuccessAction) confirmationSuccessAction();
             confirmationSuccessAction = null;
             selectedPlanMetadata = null;
         }
 
         async function requestPromoBuy(planId, planName, planCost, planDays) {
-    // 1. Check balance parameters first (similar to standard buy)
-    if (currentUserBalance < parseFloat(planCost)) {
-        triggerAppAlert(
-            'Balance Insufficient', 
-            `Your current balance ($${currentUserBalance.toFixed(2)} USD) is below the required threshold of $${parseFloat(planCost).toFixed(2)} USD.`, 
-            '⚠️'
-        );
-        return;
-    }
+            if (currentUserBalance < parseFloat(planCost)) {
+                triggerAppAlert(
+                    'Balance Insufficient', 
+                    `Your current balance ($${currentUserBalance.toFixed(2)} USD) is below the required threshold of $${parseFloat(planCost).toFixed(2)} USD.`, 
+                    '⚠️'
+                );
+                return;
+            }
 
-    // 2. Cache the metadata variables in your existing modal memory
-    selectedPlanMetadata = { 
-        planId: planDays, 
-        planName: `PROMO: ${planName}`, 
-        planCost: parseFloat(planCost) 
-    };
+            selectedPlanMetadata = { 
+                planId: planDays, 
+                planName: `PROMO: ${planName}`, 
+                planCost: parseFloat(planCost) 
+            };
 
-    // 3. Trigger your beautiful built-in confirm modal
-    openConfirmModal(
-        `Are you sure you want to deploy the promotional plan "${planName}" for $${parseFloat(planCost).toFixed(2)} USD?`, 
-        executePromoTransactionCommit
-    );
-}
-
-// 4. Submit the transaction through the custom handler
-async function executePromoTransactionCommit() {
-    if (!selectedPlanMetadata) return;
-    const { planId, planName, planCost } = selectedPlanMetadata;
-
-    try {
-        const response = await fetch('/user/request-plan-buy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                planDays: planId,
-                planName: planName,
-                planCost: planCost
-            })
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            triggerAppAlert('Request Dispatched', result.msg || 'Promo request submitted successfully! Waiting for admin approval.', '📩');
-            setTimeout(() => window.location.reload(), 1500);
-        } else {
-            triggerAppAlert('Transaction Refused', result.msg || 'Transaction declined.', '❌');
+            openConfirmModal(
+                `Are you sure you want to deploy the promotional plan "${planName}" for $${parseFloat(planCost).toFixed(2)} USD?`, 
+                executePromoTransactionCommit
+            );
         }
-    } catch (err) {
-        console.error(err);
-        triggerAppAlert('Network Drop', 'Network connection failure logging transaction.', '❌');
-    } finally {
-        selectedPlanMetadata = null;
-    }
-}
+
+        async function executePromoTransactionCommit() {
+            if (!selectedPlanMetadata) return;
+            const { planId, planName, planCost } = selectedPlanMetadata;
+
+            try {
+                const response = await fetch('/user/request-plan-buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        planDays: planId,
+                        planName: planName,
+                        planCost: planCost
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    triggerAppAlert('Request Dispatched', result.msg || 'Promo request submitted successfully! Waiting for admin approval.', '📩');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    triggerAppAlert('Transaction Refused', result.msg || 'Transaction declined.', '❌');
+                }
+            } catch (err) {
+                console.error(err);
+                triggerAppAlert('Network Drop', 'Network connection failure logging transaction.', '❌');
+            } finally {
+                selectedPlanMetadata = null;
+            }
+        }
     </script>
 </body>
 </html>
